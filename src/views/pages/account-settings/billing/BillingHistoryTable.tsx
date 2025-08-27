@@ -29,11 +29,11 @@ import Icon from 'src/@core/components/icon'
 import format from 'date-fns/format'
 
 // ** Store & Actions Imports
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { fetchData, deleteInvoice } from 'src/store/apps/invoice'
 
 // ** Types Imports
-import { RootState, AppDispatch } from 'src/store'
+import { AppDispatch } from 'src/store'
 import { ThemeColor } from 'src/@core/layouts/types'
 import { InvoiceType } from 'src/types/apps/invoiceTypes'
 
@@ -218,7 +218,8 @@ const BillingHistoryTable = () => {
 
   // ** Hooks
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.invoice)
+
+  // const store = useSelector((state: RootState) => state.invoice)
 
   useEffect(() => {
     dispatch(
@@ -337,7 +338,7 @@ const BillingHistoryTable = () => {
       <DataGrid
         autoHeight
         pagination
-        rows={store.data}
+        rows={[]}
         columns={columns}
         disableSelectionOnClick
         pageSize={Number(pageSize)}

@@ -57,7 +57,8 @@ const maskAccount = (value?: string) => {
   return `•••• •••• •••• ${last4}`
 }
 
-const Teams = () => {
+const Teams = ({ data }: { data: MerchantDataType }) => {
+  console.log(data)
   const { user } = useAuth()
   const [showBankInfo, setShowBankInfo] = useState(false)
   const merchant = useMemo(() => (user as MerchantDataType | null) || mockMerchant, [user])

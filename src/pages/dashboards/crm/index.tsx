@@ -23,7 +23,8 @@ import CrmTransactions from 'src/views/dashboards/crm/CrmTransactions'
 import CrmRevenueReport from 'src/views/dashboards/crm/CrmRevenueReport'
 import CrmSalesOverview from 'src/views/dashboards/crm/CrmSalesOverview'
 import CrmMeetingSchedule from 'src/views/dashboards/crm/CrmMeetingSchedule'
-import CrmDeveloperMeetup from 'src/views/dashboards/crm/CrmDeveloperMeetup'
+
+// import CrmDeveloperMeetup from 'src/views/dashboards/crm/CrmDeveloperMeetup'
 import CrmActivityTimeline from 'src/views/dashboards/crm/CrmActivityTimeline'
 
 const data: CardStatsCharacterProps[] = [
@@ -101,9 +102,9 @@ const CRMDashboard = () => {
         <Grid item xs={12} md={6} lg={4}>
           <CrmMeetingSchedule />
         </Grid>
-        <Grid item xs={12} md={6} lg={4}>
+        {/* <Grid item xs={12} md={6} lg={4}>
           <CrmDeveloperMeetup />
-        </Grid>
+        </Grid> */}
       </Grid>
     </ApexChartWrapper>
   )

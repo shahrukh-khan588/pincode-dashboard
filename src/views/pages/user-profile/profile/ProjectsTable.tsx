@@ -16,7 +16,8 @@ import axios from 'axios'
 
 // ** Types Imports
 import { ThemeColor } from 'src/@core/layouts/types'
-import { ProjectTableRowType } from 'src/@fake-db/types'
+
+// import { ProjectTableRowType } from 'src/@fake-db/types'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
@@ -26,11 +27,11 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 interface CellType {
-  row: ProjectTableRowType
+  row: any
 }
 
 // ** renders name column
-const renderName = (row: ProjectTableRowType) => {
+const renderName = (row: any) => {
   if (row.avatar) {
     return <CustomAvatar src={row.avatar} sx={{ mr: 2, width: 35, height: 35 }} />
   } else {
@@ -84,7 +85,7 @@ const columns = [
     headerName: 'Team',
     renderCell: ({ row }: CellType) => (
       <AvatarGroup className='pull-up'>
-        {row.avatarGroup.map((src, index) => (
+        {row.avatarGroup.map((src: any, index: number) => (
           <CustomAvatar key={index} src={src} sx={{ height: 26, width: 26 }} />
         ))}
       </AvatarGroup>

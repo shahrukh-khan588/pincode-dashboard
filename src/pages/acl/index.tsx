@@ -1,8 +1,8 @@
 // ** React Imports
-import { useContext } from 'react'
+// import { useContext } from 'react'
 
 // ** Context Imports
-import { AbilityContext } from 'src/layouts/components/acl/Can'
+// import { AbilityContext } from 'src/layouts/components/acl/Can'
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 
 const ACLPage = () => {
   // ** Hooks
-  const ability = useContext(AbilityContext)
+  // const ability = useContext(AbilityContext)
 
   return (
     <Grid container spacing={6}>
@@ -26,7 +26,7 @@ const ACLPage = () => {
           </CardContent>
         </Card>
       </Grid>
-      {ability?.can('read', 'analytics') ? (
+      {/* {ability?.can('read', 'analytics') ? (
         <Grid item md={6} xs={12}>
           <Card>
             <CardHeader title='Analytics' />
@@ -36,7 +36,7 @@ const ACLPage = () => {
             </CardContent>
           </Card>
         </Grid>
-      ) : null}
+      ) : null} */}
     </Grid>
   )
 }

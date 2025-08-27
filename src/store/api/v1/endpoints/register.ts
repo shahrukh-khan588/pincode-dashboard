@@ -14,6 +14,7 @@ export const registerApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
+      invalidatesTags: ["Merchants"],
     }),
   }),
 });

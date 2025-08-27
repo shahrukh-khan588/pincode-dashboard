@@ -46,7 +46,8 @@ const AuthProvider = ({ children }: Props) => {
         setLoading(true)
 
         // Determine which profile endpoint to use based on stored user data
-        let profileEndpoint = authConfig.meEndpoint
+        // let profileEndpoint = authConfig.meEndpoint
+        let profileEndpoint = authConfig.merchantProfileEndpoint
         if (storedUserData) {
           try {
             const userData = JSON.parse(storedUserData)

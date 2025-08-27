@@ -19,7 +19,7 @@ import { ThemeColor } from 'src/@core/layouts/types'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+// import { rows } from 'src/@fake-db/table/static-data'
 
 interface StatusObj {
   [key: number]: {
@@ -145,7 +145,7 @@ const TableSelection = () => {
       <CardHeader title='Selection' />
       <DataGrid
         autoHeight
-        rows={rows}
+        rows={[]}
         columns={columns}
         checkboxSelection
         pageSize={pageSize}

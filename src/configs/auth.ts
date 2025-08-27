@@ -1,5 +1,5 @@
 export default {
-  meEndpoint: '/auth/me',
+  // meEndpoint: '/auth/me',
   merchantProfileEndpoint: '/merchants/profile',
   adminLoginEndpoint: '/admin/auth/login',
   merchantLoginEndpoint: '/merchants/auth/login',

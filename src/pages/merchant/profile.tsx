@@ -876,7 +876,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                   fullWidth
                   size="large"
                   startIcon={<Icon icon='mdi:bank-transfer' />}
-                  disabled={!selectedBank || transferAmount > merchant?.walletBalance?.availableBalance || 0}
+                  disabled={!selectedBank || transferAmount > (merchant?.walletBalance?.availableBalance || 0)}
                   sx={{
                     mt: 2,
                     py: 1.5,

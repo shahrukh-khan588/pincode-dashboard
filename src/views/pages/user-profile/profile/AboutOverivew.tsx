@@ -9,18 +9,18 @@ import CardContent from '@mui/material/CardContent'
 import Icon from 'src/@core/components/icon'
 
 // ** Types
-import { ProfileTeamsType, ProfileTabCommonType } from 'src/@fake-db/types'
+// import { ProfileTeamsType, ProfileTabCommonType } from 'src/@fake-db/types'
 
 interface Props {
-  teams: ProfileTeamsType[]
-  about: ProfileTabCommonType[]
-  contacts: ProfileTabCommonType[]
-  overview: ProfileTabCommonType[]
+  teams: any[]
+  about: any[]
+  contacts: any[]
+  overview: any[]
 }
 
-const renderList = (arr: ProfileTabCommonType[]) => {
+const renderList = (arr: any[]) => {
   if (arr && arr.length) {
-    return arr.map((item, index) => {
+    return arr.map((item: any, index: number) => {
       return (
         <Box
           key={index}
@@ -50,9 +50,9 @@ const renderList = (arr: ProfileTabCommonType[]) => {
   }
 }
 
-const renderTeams = (arr: ProfileTeamsType[]) => {
+const renderTeams = (arr: any[]) => {
   if (arr && arr.length) {
-    return arr.map((item, index) => {
+    return arr.map((item: any, index: number) => {
       return (
         <Box
           key={index}

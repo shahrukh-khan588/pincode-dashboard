@@ -30,7 +30,8 @@ import UserProfileHeader from 'src/views/pages/user-profile/UserProfileHeader'
 
 // ** Types
 import { MerchantProfile } from '@/store/api/v1/types'
-import { buildUserProfileTabs } from '@/utils/profileMapper'
+
+// import { buildUserProfileTabs } from '@/utils/profileMapper'
 
 const TabList = styled(MuiTabList)<TabListProps>(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -87,11 +88,11 @@ const UserProfile = ({ tab, data }: { tab: string; data: MerchantProfile }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab])
 
-  const mapped = buildUserProfileTabs(data)
+  // const mapped = buildUserProfileTabs(data)
   const tabContentList: { [key: string]: ReactElement } = {
-    profile: <Profile data={mapped.profile} />,
-    'bank-details': <BankDetails data={mapped.bankDetails} />,
-    transactions: <Transactions data={mapped.transactions} />,
+    profile: <Profile data={data} />,
+    'bank-details': <BankDetails data={data} />,
+    transactions: <Transactions data={[]} />,
     requests: <Requests />
   }
 

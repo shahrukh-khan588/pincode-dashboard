@@ -52,7 +52,7 @@ const VerticalLayout = (props: LayoutProps) => {
   const { hidden, settings, saveSettings, children, scrollToTop, contentHeightFixed, verticalLayoutProps } = props
 
   // ** Vars
-  const { skin, navHidden, contentWidth, navCollapsed } = settings
+  const { skin, contentWidth, navCollapsed } = settings
   const { navigationSize, disableCustomizer, collapsedNavigationSize } = themeConfig
   const navWidth = navigationSize
   const navigationBorderWidth = skin === 'bordered' ? 1 : 0

@@ -35,6 +35,7 @@ export type NavSectionTitle = {
   auth?: boolean
   action?: string
   subject?: string
+  accessTo?: Array<'admin' | 'merchant'>
   sectionTitle: string
 }
 
@@ -44,6 +45,7 @@ export type NavGroup = {
   auth?: boolean
   action?: string
   subject?: string
+  accessTo?: Array<'admin' | 'merchant'>
   badgeContent?: string
   children?: (NavGroup | NavLink)[]
   badgeColor?: 'default' | 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info'
@@ -56,6 +58,7 @@ export type NavLink = {
   auth?: boolean
   action?: string
   subject?: string
+  accessTo?: Array<'admin' | 'merchant'>
   disabled?: boolean
   badgeContent?: string
   externalLink?: boolean

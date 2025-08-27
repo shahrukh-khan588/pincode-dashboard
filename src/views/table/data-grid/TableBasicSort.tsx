@@ -20,7 +20,7 @@ import { ThemeColor } from 'src/@core/layouts/types'
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+// import { rows } from 'src/@fake-db/table/static-data'
 
 interface StatusObj {
   [key: number]: {
@@ -161,7 +161,7 @@ const TableSort = () => {
       />
       <DataGrid
         autoHeight
-        rows={rows}
+        rows={[]}
         columns={columns}
         pageSize={pageSize}
         rowsPerPageOptions={[7, 10, 25, 50]}

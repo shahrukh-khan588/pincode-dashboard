@@ -18,7 +18,8 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // ** Types Imports
 import { ThemeColor } from 'src/@core/layouts/types'
-import { DataGridRowType } from 'src/@fake-db/types'
+
+// import { DataGridRowType } from 'src/@fake-db/types'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -146,11 +147,11 @@ const TableServerSide = () => {
   const [total, setTotal] = useState<number>(0)
   const [sort, setSort] = useState<SortType>('asc')
   const [pageSize, setPageSize] = useState<number>(7)
-  const [rows, setRows] = useState<DataGridRowType[]>([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState<string>('')
   const [sortColumn, setSortColumn] = useState<string>('full_name')
 
-  function loadServerRows(currentPage: number, data: DataGridRowType[]) {
+  function loadServerRows(currentPage: number, data: any[]) {
     return data.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
   }
 

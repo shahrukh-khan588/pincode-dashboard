@@ -18,7 +18,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 
 // ** Types
-import { ProjectsTabType } from 'src/@fake-db/types'
+// import { ProjectsTabType } from 'src/@fake-db/types'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -60,7 +60,7 @@ const transactionColumns: GridColDef[] = [
   { field: 'type', headerName: 'Type', flex: 0.6 }
 ]
 
-const ProjectAvatar = ({ project }: { project: ProjectsTabType }) => {
+const ProjectAvatar = ({ project }: { project: any }) => {
   const { title, avatar, avatarColor = 'primary' } = project
 
   if (avatar.length) {
@@ -74,7 +74,7 @@ const ProjectAvatar = ({ project }: { project: ProjectsTabType }) => {
   }
 }
 
-const Projects = ({ data }: { data: ProjectsTabType[] }) => {
+const Projects = ({ data }: { data: any[] }) => {
   return (
     <Grid container spacing={6}>
       {/* All Transactions moved from Profile tab */}
@@ -211,7 +211,7 @@ const Projects = ({ data }: { data: ProjectsTabType[] }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <AvatarGroup className='pull-up' sx={{ mr: 2 }}>
                         {item.avatarGroup &&
-                          item.avatarGroup.map((person, index) => {
+                          item.avatarGroup.map((person: any, index: number) => {
                             return (
                               <Tooltip key={index} title={person.name}>
                                 <CustomAvatar src={person.avatar} alt={person.name} sx={{ height: 32, width: 32 }} />

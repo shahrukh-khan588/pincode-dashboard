@@ -4,7 +4,6 @@ import { ReactNode } from 'react'
 // ** MUI Imports
 import { Theme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import Icon from 'src/@core/components/icon'
 
 // ** Layout Imports
 // !Do not remove this Layout import

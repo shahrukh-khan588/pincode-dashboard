@@ -5,7 +5,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import CardHeader from '@mui/material/CardHeader'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+// import { rows } from 'src/@fake-db/table/static-data'
 
 const columns = [
   {
@@ -51,7 +51,7 @@ const TableBasic = () => {
     <Card>
       <CardHeader title='Basic' />
       <Box sx={{ height: 500 }}>
-        <DataGrid columns={columns} rows={rows.slice(0, 10)} />
+        <DataGrid columns={columns} rows={[]} />
       </Box>
     </Card>
   )

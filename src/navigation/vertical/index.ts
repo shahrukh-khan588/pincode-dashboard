@@ -3,40 +3,72 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 
 const navigation = (): VerticalNavItemsType => {
   return [
+    // admin and merchant can access this
+    {
+      title: 'Dashboard',
+      icon: 'mdi:home-outline',
+      path: '/pages/user-profile/dashboard/',
+      auth: true,
+      accessTo: ['admin', 'merchant']
+    },
     {
       icon: 'mdi:wallet-outline',
       title: 'Wallet',
-      path: '/pages/user-profile/wallet/'
+      path: '/pages/user-profile/wallet/',
+      auth: true,
+      accessTo: ['merchant']
     },
     {
       sectionTitle: 'Profile Section'
     },
-    {
-      title: 'Profile',
-      icon: 'mdi:store-outline',
 
-      // badgeContent: 'new',
-      // badgeColor: 'error',
+    // only merchant can access this
+    {
+      auth: true,
+      accessTo: ['merchant'],
+      title: 'Profile',
+      icon: 'mdi:account-outline',
       children: [
         {
+          icon: 'mdi:account-outline',
           title: 'Profile',
           path: '/pages/user-profile/profile/'
         },
         {
-          title: 'Settings',
+          icon: 'mdi:bank-outline',
+          title: 'Bank Details',
           path: '/pages/user-profile/bank-details/'
         },
         {
           title: 'Transactions',
+          icon: 'mdi:bank-transfer',
           path: '/pages/user-profile/transactions/'
         },
         {
-          title: 'Requests',
+          title: 'Payout Requests',
+          icon: 'mdi:cash-sync',
           path: '/pages/user-profile/requests/'
         }
       ]
     },
 
+    // admin can access this
+    {
+      badgeContent: '10',
+      badgeColor: 'success',
+      title: 'Payout Requests',
+      icon: 'mdi:cash-sync',
+      path: '/pages/payout/payoutlist',
+      auth: true,
+      accessTo: ['admin']
+    },
+    {
+      // auth: true,
+      accessTo: ['admin'],
+      title: 'Merchants',
+      path: '/pages/merchants/merchantlist',
+      icon: 'mdi:account-group-outline'
+    }
 
     // {
     //   title: 'Dashboards',

@@ -15,13 +15,14 @@ import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
 
 // ** Types Imports
 import { ThemeColor } from 'src/@core/layouts/types'
-import { DataGridRowType } from 'src/@fake-db/types'
+
+// import { DataGridRowType } from 'src/@fake-db/types'
 
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Data Import
-import { rows } from 'src/@fake-db/table/static-data'
+// import { rows } from 'src/@fake-db/table/static-data'
 
 interface StatusObj {
   [key: number]: {
@@ -144,10 +145,10 @@ const columns: GridColumns = [
 
 const TableColumns = () => {
   // ** States
-  const [data] = useState<DataGridRowType[]>(rows)
+  const [data] = useState<any[]>([])
   const [pageSize, setPageSize] = useState<number>(7)
   const [searchText, setSearchText] = useState<string>('')
-  const [filteredData, setFilteredData] = useState<DataGridRowType[]>([])
+  const [filteredData, setFilteredData] = useState<any[]>([])
 
   const handleSearch = (searchValue: string) => {
     setSearchText(searchValue)

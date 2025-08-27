@@ -24,7 +24,7 @@ import MuiAutocomplete, { AutocompleteRenderInputParams } from '@mui/material/Au
 import axios from 'axios'
 
 // ** Types Imports
-import { AppBarSearchType } from 'src/@fake-db/types'
+// import { AppBarSearchType } from 'src/@fake-db/types'
 import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Icon Imports
@@ -366,7 +366,7 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
   const [openDialog, setOpenDialog] = useState<boolean>(false)
-  const [options, setOptions] = useState<AppBarSearchType[]>([])
+  const [options, setOptions] = useState<any[]>([])
 
   // ** Hooks & Vars
   const theme = useTheme()
@@ -403,7 +403,7 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
   }, [])
 
   // Handle click event on a list item in search result
-  const handleOptionClick = (obj: AppBarSearchType) => {
+  const handleOptionClick = (obj: any) => {
     setSearchValue('')
     setOpenDialog(false)
     if (obj.url) {
@@ -468,25 +468,25 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
                 id='appBar-search'
                 isOptionEqualToValue={() => true}
                 onInputChange={(event, value: string) => setSearchValue(value)}
-                onChange={(event, obj) => handleOptionClick(obj as AppBarSearchType)}
+                onChange={(event, obj) => handleOptionClick(obj as any)}
                 noOptionsText={<NoResult value={searchValue} setOpenDialog={setOpenDialog} />}
-                getOptionLabel={(option: AppBarSearchType | unknown) => (option as AppBarSearchType).title || ''}
-                groupBy={(option: AppBarSearchType | unknown) =>
-                  searchValue.length ? categoryTitle[(option as AppBarSearchType).category] : ''
+                getOptionLabel={(option: any | unknown) => (option as any).title || ''}
+                groupBy={(option: any | unknown) =>
+                  searchValue.length ? categoryTitle[(option as any).category] : ''
                 }
                 sx={{
                   '& + .MuiAutocomplete-popper': {
                     ...(searchValue.length
                       ? {
-                          overflow: 'auto',
-                          maxHeight: 'calc(100vh - 69px)',
-                          borderTop: `1px solid ${theme.palette.divider}`,
-                          height: fullScreenDialog ? 'calc(100vh - 69px)' : 481,
-                          '& .MuiListSubheader-root': { p: theme.spacing(3.75, 6, 0.75) }
-                        }
+                        overflow: 'auto',
+                        maxHeight: 'calc(100vh - 69px)',
+                        borderTop: `1px solid ${theme.palette.divider}`,
+                        height: fullScreenDialog ? 'calc(100vh - 69px)' : 481,
+                        '& .MuiListSubheader-root': { p: theme.spacing(3.75, 6, 0.75) }
+                      }
                       : {
-                          '& .MuiAutocomplete-listbox': { pb: 0 }
-                        })
+                        '& .MuiAutocomplete-listbox': { pb: 0 }
+                      })
                   }
                 }}
                 renderInput={(params: AutocompleteRenderInputParams) => {
@@ -528,13 +528,13 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
                     />
                   )
                 }}
-                renderOption={(props, option: AppBarSearchType | unknown) => {
+                renderOption={(props, option: any | unknown) => {
                   return searchValue.length ? (
                     <ListItem
                       {...props}
-                      key={(option as AppBarSearchType).title}
+                      key={(option as any).title}
                       className={`suggestion ${props.className}`}
-                      onClick={() => handleOptionClick(option as AppBarSearchType)}
+                      onClick={() => handleOptionClick(option as any)}
                       secondaryAction={<Icon icon='mdi:subdirectory-arrow-left' fontSize={20} />}
                       sx={{
                         '& .MuiListItemSecondaryAction-root': {
@@ -552,9 +552,9 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
                           '& svg': { mr: 2.5, color: 'text.primary' }
                         }}
                       >
-                        <Icon fontSize={20} icon={(option as AppBarSearchType).icon || themeConfig.navSubItemIcon} />
+                        <Icon fontSize={20} icon={(option as any).icon || themeConfig.navSubItemIcon} />
                         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {(option as AppBarSearchType).title}
+                          {(option as any).title}
                         </Typography>
                       </ListItemButton>
                     </ListItem>

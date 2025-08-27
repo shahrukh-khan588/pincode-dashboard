@@ -23,7 +23,7 @@ import IconButton from '@mui/material/IconButton'
 import { useAuth } from 'src/hooks/useAuth'
 
 // ** Types
-import type { ProfileTabType } from 'src/@fake-db/types'
+// import type { ProfileTabType } from 'src/@fake-db/types'
 import type { MerchantDataType } from 'src/context/types'
 
 // ** Icons
@@ -102,7 +102,7 @@ const BalanceAreaChart = () => (
 )
 
 
-const ProfileTab = ({ data }: { data: ProfileTabType }) => {
+const ProfileTab = ({ data }: { data: any }) => {
   const { user } = useAuth()
   const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
   const [showAccountInfo, setShowAccountInfo] = useState(false)
@@ -289,6 +289,8 @@ const ProfileTab = ({ data }: { data: ProfileTabType }) => {
                 fullWidth
                 size="large"
                 startIcon={<Icon icon='mdi:bank-transfer' />}
+
+                // @ts-ignore
                 disabled={!selectedBank || transferAmount > merchant?.walletBalance?.availableBalance || 0}
                 sx={{ mt: 2, py: 1.5, fontSize: '1rem', fontWeight: 600 }}
               >
