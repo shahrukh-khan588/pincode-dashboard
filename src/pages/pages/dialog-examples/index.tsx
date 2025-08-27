@@ -50,12 +50,53 @@ const DialogExamples = ({ apiPricingPlanData }: InferGetStaticPropsType<typeof g
 )
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await axios.get('/pages/pricing')
-  const data: PricingDataType = res.data
+  try {
+    const res = await axios.get('/pages/pricing')
+    const data: PricingDataType = res.data
 
-  return {
-    props: {
-      apiPricingPlanData: data.pricingPlans
+    return {
+      props: {
+        apiPricingPlanData: data.pricingPlans
+      }
+    }
+  } catch (error) {
+    // Fallback data if API is not available during build
+    const fallbackData: PricingDataType = {
+      pricingPlans: [
+        {
+          title: 'Basic',
+          imgSrc: '/images/pages/pricing-basic.png',
+          subtitle: 'A simple start for everyone',
+          monthlyPrice: 0,
+          currentPlan: false,
+          yearlyPlan: {
+            perMonth: 0,
+            totalAnnual: 0
+          },
+          planBenefits: [
+            'Up to 10,000 monthly visits',
+            'Up to 30 team members',
+            '40GB cloud storage',
+            'Integration help',
+            'Basic analytics',
+            'Up to 600 team chat messages',
+            'Basic admin and security features',
+            'Community support'
+          ],
+          popularPlan: false
+        }
+      ],
+      faq: [],
+      pricingTable: {
+        header: [],
+        rows: []
+      }
+    }
+
+    return {
+      props: {
+        apiPricingPlanData: fallbackData.pricingPlans
+      }
     }
   }
 }
