@@ -65,17 +65,17 @@ const Teams = ({ data }: { data: MerchantDataType }) => {
   const bankAccounts: Array<{ id: string; bankName: string; accountNumber: string; accountTitle: string; iban: string; branchCode: string }> = [
     {
       id: 'acc-1',
-      bankName: merchant.bankAccountDetails.bankName,
-      accountNumber: merchant.bankAccountDetails.accountNumber,
-      accountTitle: merchant.bankAccountDetails.accountTitle,
-      iban: merchant.bankAccountDetails.iban,
-      branchCode: merchant.bankAccountDetails.branchCode
+      bankName: merchant?.bankAccountDetails?.bankName || '',
+      accountNumber: merchant?.bankAccountDetails.accountNumber,
+      accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
+      iban: merchant?.bankAccountDetails?.iban || '',
+      branchCode: merchant?.bankAccountDetails?.branchCode || ''
     },
     {
       id: 'acc-2',
       bankName: 'Habib Bank Limited',
       accountNumber: '0011223344556677',
-      accountTitle: merchant.bankAccountDetails.accountTitle,
+      accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
       iban: 'PK36HABB0001234567890011223',
       branchCode: '0123'
     },

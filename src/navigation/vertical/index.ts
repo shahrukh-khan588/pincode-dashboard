@@ -7,14 +7,14 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: 'Dashboard',
       icon: 'mdi:home-outline',
-      path: '/pages/user-profile/dashboard/',
+      path: '/',
       auth: true,
       accessTo: ['admin', 'merchant']
     },
     {
       icon: 'mdi:wallet-outline',
       title: 'Wallet',
-      path: '/pages/user-profile/wallet/',
+      path: '/wallet/',
       auth: true,
       accessTo: ['merchant']
     },

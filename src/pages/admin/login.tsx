@@ -23,7 +23,6 @@ import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormCo
 import Alert from '@mui/material/Alert'
 import Collapse from '@mui/material/Collapse'
 
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -111,7 +110,7 @@ interface FormData {
   password: string
 }
 
-const LoginPage = () => {
+const AdminLoginPage = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(true)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
@@ -143,8 +142,8 @@ const LoginPage = () => {
     setIsSubmitted(true)
     setErrorMessage('')
 
-    // Merchant login with userType set to 'merchant'
-    auth.login({ email, password, rememberMe, userType: 'merchant' }, (err) => {
+    // Admin login with userType set to 'admin'
+    auth.login({ email, password, rememberMe, userType: 'admin' }, (err) => {
       if (err?.response?.status === 401 || err?.response?.status === 400) {
         setError('email', {
           type: 'manual',
@@ -267,12 +266,11 @@ const LoginPage = () => {
               </Typography>
             </Box>
             <Box sx={{ mb: 6 }}>
-              <TypographyStyled variant='h5'>Welcome to {themeConfig.templateName}! 👋🏻</TypographyStyled>
+              <TypographyStyled variant='h5'>Welcome to Admin Panel! 👋🏻</TypographyStyled>
               <Typography variant='body2'>
-                Please sign-in to your account and start the adventure
+                Please sign-in to your admin account to access the dashboard
               </Typography>
             </Box>
-
 
             <Collapse in={!!errorMessage}>
               <Alert
@@ -298,7 +296,7 @@ const LoginPage = () => {
                       onBlur={onBlur}
                       onChange={onChange}
                       error={Boolean(errors.email)}
-                      placeholder='Enter your email'
+                      placeholder='Enter your admin email'
                     />
                   )}
                 />
@@ -348,17 +346,17 @@ const LoginPage = () => {
                   label='Remember Me'
                   control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
                 />
-                <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
+                <LinkStyled href='/admin/forgot-password'>Forgot Password?</LinkStyled>
               </Box>
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
-                Login
+                Admin Login
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 2 }}>
-                  New on our platform?
+                  Need an admin account?
                 </Typography>
                 <Typography variant='body2'>
-                  <LinkStyled href='/register'>Create an account</LinkStyled>
+                  <LinkStyled href='/admin/register'>Create admin account</LinkStyled>
                 </Typography>
               </Box>
               <Divider sx={{ my: theme => `${theme.spacing(5)} !important` }}>or</Divider>
@@ -404,8 +402,8 @@ const LoginPage = () => {
   )
 }
 
-LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
+AdminLoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-LoginPage.guestGuard = true
+AdminLoginPage.guestGuard = true
 
-export default LoginPage
+export default AdminLoginPage

@@ -88,11 +88,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
   color: theme.palette.primary.main
 }))
 
-
-
-
-
-// ** Complete validation schema
+// ** Merchant validation schema
 const schema = yup.object().shape({
   firstName: yup.string().required('First name is required'),
   lastName: yup.string().required('Last name is required'),
@@ -112,7 +108,7 @@ const schema = yup.object().shape({
   agreeToTerms: yup.boolean().oneOf([true], 'You must agree to the terms and conditions')
 })
 
-// ** Form Data Interface
+// ** Merchant Form Data Interface
 interface FormData {
   firstName: string
   lastName: string
@@ -151,7 +147,7 @@ const defaultValues: FormData = {
   agreeToTerms: false
 }
 
-const Register = () => {
+const MerchantRegister = () => {
   // ** States
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [registerMutation, { isLoading }] = useRegisterMutation()
@@ -203,7 +199,7 @@ const Register = () => {
         }
       }).unwrap()
 
-      setSuccessMessage('You are registered successfully')
+      setSuccessMessage('Merchant account created successfully')
       router.push('/login')
       reset()
     } catch (error: any) {
@@ -211,8 +207,6 @@ const Register = () => {
       setErrorMessage(message)
     }
   }
-
-
 
   // ** Form Content
   const renderFormContent = () => (
@@ -618,8 +612,8 @@ const Register = () => {
             </Box>
 
             <Box sx={{ mb: 6 }}>
-              <TypographyStyled variant='h5'>Adventure starts here 🚀</TypographyStyled>
-              <Typography variant='body2'>Make your app management easy and fun!</Typography>
+              <TypographyStyled variant='h5'>Merchant Registration 🚀</TypographyStyled>
+              <Typography variant='body2'>Join our platform and start accepting payments!</Typography>
             </Box>
 
             {/* Alerts */}
@@ -640,13 +634,13 @@ const Register = () => {
 
               {/* Submit Button */}
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7, mt: 4 }} disabled={isLoading}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+                {isLoading ? 'Creating Merchant Account...' : 'Create Merchant Account'}
               </Button>
 
               {/* Sign In Link */}
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 2 }}>
-                  Already have an account?
+                  Already have a merchant account?
                 </Typography>
                 <Typography variant='body2'>
                   <LinkStyled href='/login'>Sign in instead</LinkStyled>
@@ -660,8 +654,8 @@ const Register = () => {
   )
 }
 
-Register.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
+MerchantRegister.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-Register.guestGuard = true
+MerchantRegister.guestGuard = true
 
-export default Register
+export default MerchantRegister

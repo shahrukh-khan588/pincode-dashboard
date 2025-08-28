@@ -1,5 +1,12 @@
+
+import Crm from './dashboards/crm/index'
+
 const Home = () => {
-  return <>Home Page</>
+
+
+  return <>
+    <Crm />
+  </>
 }
 
 export default Home

@@ -185,7 +185,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                         <Icon icon='mdi:trending-down' />
                       </Avatar>
                       <Box>
-                        <Typography variant='subtitle2'>Yearly Expenses</Typography>
+                        <Typography variant='subtitle2'>Total Payouts</Typography>
                         <Typography variant='h5'>{formatCurrency(450000)}</Typography>
                       </Box>
                     </Stack>
