@@ -21,8 +21,9 @@ class CustomDocument extends Document {
             rel='stylesheet'
             href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
           />
-          <link rel='apple-touch-icon' sizes='180x180' href='/images/apple-touch-icon.png' />
-          <link rel='shortcut icon' href='/images/favicon.png' />
+          <link rel='apple-touch-icon' sizes='180x180' href='/Pincode-logo.svg' />
+          <link rel='shortcut icon' href='/Pincode-logo.svg' />
+          <link rel='icon' type='image/svg+xml' href='/Pincode-logo.svg' />
         </Head>
         <body>
           <Main />
@@ -41,12 +42,12 @@ CustomDocument.getInitialProps = async ctx => {
   ctx.renderPage = () =>
     originalRenderPage({
       enhanceApp: App => props =>
-        (
-          <App
-            {...props} // @ts-ignore
-            emotionCache={cache}
-          />
-        )
+      (
+        <App
+          {...props} // @ts-ignore
+          emotionCache={cache}
+        />
+      )
     })
 
   const initialProps = await Document.getInitialProps(ctx)
