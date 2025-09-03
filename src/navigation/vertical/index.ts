@@ -11,6 +11,7 @@ const navigation = (): VerticalNavItemsType => {
       auth: true,
       accessTo: ['admin', 'merchant']
     },
+
     {
       icon: 'mdi:wallet-outline',
       title: 'Wallet',
@@ -63,12 +64,23 @@ const navigation = (): VerticalNavItemsType => {
       accessTo: ['admin']
     },
     {
-      // auth: true,
+
+      auth: true,
       accessTo: ['admin'],
       title: 'Merchants',
       path: '/pages/merchants/merchantlist',
       icon: 'mdi:account-group-outline'
-    }
+    },
+
+    {
+      badgeContent: '5',
+      badgeColor: 'secondary',
+      auth: true,
+      title: 'Transactions',
+      icon: 'mdi:wallet-outline',
+      path: '/pages/transactions/transactionslist',
+      accessTo: ['admin']
+    },
 
     // {
     //   title: 'Dashboards',
