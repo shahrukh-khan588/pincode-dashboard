@@ -33,6 +33,7 @@ import UserLayout from 'src/layouts/UserLayout'
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import AuthGuard from 'src/@core/components/auth/AuthGuard'
 import GuestGuard from 'src/@core/components/auth/GuestGuard'
+import MerchantApprovalGuard from 'src/@core/components/auth/MerchantApprovalGuard'
 
 // ** Spinner Import
 import Spinner from 'src/@core/components/spinner'
@@ -63,13 +64,18 @@ import '../../styles/globals.css'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
-  Component: NextPage
+  Component: NextPage & {
+    authGuard?: boolean
+    guestGuard?: boolean
+    merchantApprovalGuard?: boolean
+  }
   emotionCache: EmotionCache
 }
 
 type GuardProps = {
   authGuard: boolean
   guestGuard: boolean
+  merchantApprovalGuard: boolean
   children: ReactNode
 }
 
@@ -88,11 +94,19 @@ if (themeConfig.routingLoader) {
   })
 }
 
-const Guard = ({ children, authGuard, guestGuard }: GuardProps) => {
+const Guard = ({ children, authGuard, guestGuard, merchantApprovalGuard }: GuardProps) => {
   if (guestGuard) {
     return <GuestGuard fallback={<Spinner />}>{children}</GuestGuard>
   } else if (!guestGuard && !authGuard) {
     return <>{children}</>
+  } else if (merchantApprovalGuard) {
+    return (
+      <AuthGuard fallback={<Spinner />}>
+        <MerchantApprovalGuard fallback={<Spinner />}>
+          {children}
+        </MerchantApprovalGuard>
+      </AuthGuard>
+    )
   } else {
     return <AuthGuard fallback={<Spinner />}>{children}</AuthGuard>
   }
@@ -112,6 +126,8 @@ const App = (props: ExtendedAppProps) => {
   const authGuard = Component.authGuard ?? true
 
   const guestGuard = Component.guestGuard ?? false
+
+  const merchantApprovalGuard = Component.merchantApprovalGuard ?? false
 
   // const aclAbilities = Component.acl ?? defaultACLObj
 
@@ -134,7 +150,7 @@ const App = (props: ExtendedAppProps) => {
               {({ settings }) => {
                 return (
                   <ThemeComponent settings={settings}>
-                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                    <Guard authGuard={authGuard} guestGuard={guestGuard} merchantApprovalGuard={merchantApprovalGuard}>
                       {getLayout(<Component {...pageProps} />)}
                     </Guard>
                     <ReactHotToast>
@@ -147,7 +163,7 @@ const App = (props: ExtendedAppProps) => {
           </SettingsProvider>
         </AuthProvider>
       </CacheProvider>
-    </Provider>
+    </Provider >
   )
 }
 

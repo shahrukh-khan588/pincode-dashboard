@@ -20,7 +20,10 @@ import Customizer from 'src/@core/components/customizer'
 import Navigation from './components/vertical/navigation'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
 import Fab from '@mui/material/Fab'
-import Fade from '@mui/material/Fade';
+import Fade from '@mui/material/Fade'
+
+// ** Hooks
+import { useAuth } from 'src/hooks/useAuth'
 
 
 const VerticalLayoutWrapper = styled('div')({
@@ -51,6 +54,9 @@ const VerticalLayout = (props: LayoutProps) => {
   // ** Props
   const { hidden, settings, saveSettings, children, scrollToTop, contentHeightFixed, verticalLayoutProps } = props
 
+  // ** Hooks
+  const { user } = useAuth()
+
   // ** Vars
   const { skin, contentWidth, navCollapsed } = settings
   const { navigationSize, disableCustomizer, collapsedNavigationSize } = themeConfig
@@ -61,8 +67,40 @@ const VerticalLayout = (props: LayoutProps) => {
   // ** States
   const [navVisible, setNavVisible] = useState<boolean>(false)
 
+  // Check if merchant is verified - hide all UI for unverified merchants
+  const isMerchantVerified = user && (user as any).merchantId
+    ? (user as any).verificationStatus === 'verified'
+    : true // Admin users are always considered "verified"
+
+  // Hide all UI elements for unverified merchants
+  const shouldHideAllUI = user && (user as any).merchantId && !isMerchantVerified
+
   // ** Toggle Functions
   const toggleNavVisibility = () => setNavVisible(!navVisible)
+
+  // If merchant is not verified, show only content without any UI elements
+  if (shouldHideAllUI) {
+    return (
+      <Box position={'relative'}>
+        <ContentWrapper
+          className='layout-page-content'
+          sx={{
+            ...(contentHeightFixed && {
+              overflow: 'hidden',
+              '& > :first-of-type': { height: '100%' }
+            }),
+            ...(contentWidth === 'boxed' && {
+              mx: 'auto',
+              '@media (min-width:1440px)': { maxWidth: 1440 },
+              '@media (min-width:1200px)': { maxWidth: '100%' }
+            })
+          }}
+        >
+          {children}
+        </ContentWrapper>
+      </Box>
+    )
+  }
 
   return (
     <Box position={'relative'}>

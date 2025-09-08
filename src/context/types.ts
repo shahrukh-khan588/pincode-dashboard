@@ -36,18 +36,19 @@ export type BankAccountDetails = {
 export type MerchantDataType = {
   merchantId: string
   email: string
-  firstName: string
-  lastName: string
+  firstName?: string
+  lastName?: string
   businessName: string
-  businessAddress: string
-  taxId: string
-  phoneNumber: string
+  businessAddress?: string
+  taxId?: string
+  phoneNumber?: string
   verificationStatus: string
   isActive: boolean
-  walletBalance: WalletBalance
-  bankAccountDetails: BankAccountDetails
-  createdAt: string
-  updatedAt: string
+  walletBalance?: WalletBalance
+  bankAccountDetails?: BankAccountDetails
+  createdAt?: string
+  updatedAt?: string
+  accessToken?: string
 }
 
 export type AuthValuesType = {
@@ -57,4 +58,5 @@ export type AuthValuesType = {
   setLoading: (value: boolean) => void
   setUser: (value: UserDataType | MerchantDataType | null) => void
   login: (params: LoginParams, errorCallback?: ErrCallbackType) => void
+  refreshMerchantProfile: () => Promise<UserDataType | MerchantDataType | null>
 }

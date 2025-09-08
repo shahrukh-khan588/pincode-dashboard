@@ -11,7 +11,24 @@ export const api = createApi({
         headers.set("Authorization", `Bearer ${token}`);
       }
 
+      // Ensure Content-Type is set for all requests
+      if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+
+      // Set Accept header
+      headers.set("Accept", "application/json");
+
       return headers;
+    },
+    fetchFn: async (input, init) => {
+      const response = await fetch(input, {
+        ...init,
+        mode: 'cors',
+        credentials: 'omit',
+      });
+
+      return response;
     },
   }),
   tagTypes: [

@@ -583,4 +583,7 @@ const Wallet = () => {
   )
 }
 
+// Set page properties for merchant approval protection
+Wallet.authGuard = true
+Wallet.merchantApprovalGuard = true
 export default Wallet

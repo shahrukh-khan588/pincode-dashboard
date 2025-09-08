@@ -15,4 +15,8 @@ const UserProfileTab = () => {
   return <UserProfile tab={tabParam} data={data as MerchantProfile} />
 }
 
+// Set page properties for merchant approval protection
+UserProfileTab.authGuard = true
+UserProfileTab.merchantApprovalGuard = true
+
 export default UserProfileTab

@@ -8,4 +8,8 @@ const Home = () => {
   </>
 }
 
+// Set page properties for merchant approval protection
+Home.authGuard = true
+Home.merchantApprovalGuard = true
+
 export default Home

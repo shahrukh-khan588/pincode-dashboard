@@ -922,6 +922,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
 }
 
 MerchantProfilePage.authGuard = true
+MerchantProfilePage.merchantApprovalGuard = true
 
 export default MerchantProfilePage
 

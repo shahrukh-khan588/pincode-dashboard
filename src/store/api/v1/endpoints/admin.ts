@@ -5,10 +5,7 @@ import { api } from '..';
 
 export const adminApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getMerchants: builder.query<
-      AdminMerchantsResponse,
-      { page?: number; limit?: number; search?: string }
-    >({
+    getMerchants: builder.query<AdminMerchantsResponse, { page?: number; limit?: number; search?: string }>({
       query: ({ page = 1, limit = 10, search = "" }) => {
         const params = new URLSearchParams({
           page: page.toString(),
@@ -27,7 +24,21 @@ export const adminApi = api.injectEndpoints({
           (error.data as { error?: string })?.error || "Failed to fetch merchants"
         ),
     }),
-  }),
-});
 
-export const { useGetMerchantsQuery } = adminApi;
+    handelChangeUserStatus: builder.mutation<void, { merchantId: string; status: 'rejected' | 'verified' | 'suspended' }>({
+      query: ({ merchantId, status }) => ({
+        url: `/admin/merchants/${merchantId}/status`,
+        method: 'PATCH',
+        body: { verificationStatus: status },
+      }),
+      transformErrorResponse: (error: FetchBaseQueryError) =>
+        transformErrorResponse(
+          error,
+          (error.data as { error?: string })?.error || "Failed to update merchant status"
+        ),
+    }),
+
+  })
+})
+
+export const { useGetMerchantsQuery, useHandelChangeUserStatusMutation } = adminApi;

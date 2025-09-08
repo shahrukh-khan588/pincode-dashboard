@@ -20,7 +20,8 @@ const defaultProvider: AuthValuesType = {
   setUser: () => void 0,
   setLoading: () => void 0,
   login: () => Promise.resolve(),
-  logout: () => Promise.resolve()
+  logout: () => Promise.resolve(),
+  refreshMerchantProfile: () => Promise.resolve(null)
 }
 
 const AuthContext = createContext(defaultProvider)
@@ -37,47 +38,60 @@ const AuthProvider = ({ children }: Props) => {
   // ** Hooks
   const router = useRouter()
 
+  // ** Function to fetch latest merchant profile data
+  const fetchMerchantProfile = async (token: string) => {
+    try {
+      const response = await axiosInstance.get(authConfig.merchantProfileEndpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      return response.data
+    } catch (error) {
+      console.error('Error fetching merchant profile:', error)
+
+      return null
+    }
+  }
+
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
       const storedUserData = window.localStorage.getItem('userData')
 
-      if (storedToken) {
-        setLoading(true)
+      if (storedToken && storedUserData) {
+        try {
+          const userData = JSON.parse(storedUserData)
 
-        // Determine which profile endpoint to use based on stored user data
-        // let profileEndpoint = authConfig.meEndpoint
-        let profileEndpoint = authConfig.merchantProfileEndpoint
-        if (storedUserData) {
-          try {
-            const userData = JSON.parse(storedUserData)
-            if (userData.merchantId) {
-              profileEndpoint = authConfig.merchantProfileEndpoint
+          // If user is a merchant, fetch latest profile data to get current verification status
+          if (userData && userData.merchantId) {
+            const latestProfile = await fetchMerchantProfile(storedToken)
+            if (latestProfile) {
+              // Update user data with latest verification status
+              const updatedUserData = { ...userData, ...latestProfile }
+              setUserState(updatedUserData)
+
+              // Update stored data with latest information
+              window.localStorage.setItem('userData', JSON.stringify(updatedUserData))
+            } else {
+              // If API call fails, use stored data
+              setUserState(userData)
             }
-          } catch (error) {
-            console.error('Error parsing stored user data:', error)
+          } else {
+            // For admin users, use stored data as is
+            setUserState(userData)
           }
+
+          setLoading(false)
+        } catch (error) {
+          console.error('Error parsing stored user data:', error)
+          localStorage.removeItem('userData')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('accessToken')
+          setUserState(null)
+          setLoading(false)
         }
-
-        await axiosInstance.get(profileEndpoint, {
-          headers: {
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-          .then(async (response: any) => {
-            setLoading(false)
-            setUserState({ ...response.data.userData || response.data })
-          })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUserState(null)
-            setLoading(false)
-            if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-              router.replace('/login')
-            }
-          })
       } else {
         setLoading(false)
       }
@@ -113,9 +127,20 @@ const AuthProvider = ({ children }: Props) => {
       setUserState({ ...userData })
       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
 
-      // Redirect merchants to their profile dashboard by default
+      // Redirect merchants based on their approval status
       const isMerchant = (params.userType === 'merchant') || !!(userData && (userData as any).merchantId)
-      const defaultPath = isMerchant ? '/pages/user-profile/profile/' : '/'
+
+      let defaultPath = '/'
+      if (isMerchant) {
+        // Check merchant verification status
+        const merchantStatus = (userData as any).verificationStatus
+        if (merchantStatus === 'verified') {
+          defaultPath = '/pages/user-profile/profile/' // or '/merchant/profile'
+        } else {
+          defaultPath = '/merchant/account-status' // Redirect to status page if not verified
+        }
+      }
+
       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : defaultPath
 
       router.replace(redirectURL as string)
@@ -162,13 +187,31 @@ const AuthProvider = ({ children }: Props) => {
     router.push('/login')
   }
 
+  // ** Function to refresh merchant profile data
+  const refreshMerchantProfile = async () => {
+    const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
+    if (storedToken && user && (user as any).merchantId) {
+      const latestProfile = await fetchMerchantProfile(storedToken)
+      if (latestProfile) {
+        const updatedUserData = { ...user, ...latestProfile }
+        setUserState(updatedUserData)
+        window.localStorage.setItem('userData', JSON.stringify(updatedUserData))
+
+        return updatedUserData
+      }
+    }
+
+    return null
+  }
+
   const values: AuthValuesType = {
     user,
     loading,
     setUser: setUserState,
     setLoading,
     login: handleLogin,
-    logout: handleLogout
+    logout: handleLogout,
+    refreshMerchantProfile
   }
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>

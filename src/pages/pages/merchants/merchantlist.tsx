@@ -36,7 +36,7 @@ import { getInitials } from 'src/@core/utils/get-initials'
 
 // ** Actions Imports
 // import { fetchData, deleteUser } from 'src/store/apps/user'
-import { useGetMerchantsQuery } from 'src/store/api/v1/endpoints/admin'
+import { useGetMerchantsQuery, useHandelChangeUserStatusMutation } from 'src/store/api/v1/endpoints/admin'
 
 // ** Third Party Components
 
@@ -87,13 +87,13 @@ const renderClient = (row: AdminMerchantItem) => {
   )
 }
 
-const RowOptions = ({ id }: { id: number | string }) => {
+const RowOptions = ({ merchantId }: { merchantId: string }) => {
   // ** Hooks
-  void id
+  void merchantId
 
   // ** State
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
+  const [handelChangeUserStatus] = useHandelChangeUserStatusMutation()
   const rowOptionsOpen = Boolean(anchorEl)
 
   const handleRowOptionsClick = (event: MouseEvent<HTMLElement>) => {
@@ -103,8 +103,14 @@ const RowOptions = ({ id }: { id: number | string }) => {
     setAnchorEl(null)
   }
 
+  const handelUserAccountStatus = (status: 'rejected' | 'verified' | 'suspended') => {
+    handelChangeUserStatus({ merchantId, status })
+  }
+
   const handleDelete = () => {
     handleRowOptionsClose()
+
+    // Handle delete logic here
   }
 
   return (
@@ -125,22 +131,36 @@ const RowOptions = ({ id }: { id: number | string }) => {
           vertical: 'top',
           horizontal: 'right'
         }}
-        PaperProps={{ style: { minWidth: '8rem' } }}
+        PaperProps={{ style: { minWidth: '10rem' } }}
       >
         <MenuItem
           component={Link}
           sx={{ '& svg': { mr: 2 } }}
           onClick={handleRowOptionsClose}
-          href='/apps/user/view/overview/'
+          href={`/pages/merchants/merchant-detail?merchantId=${merchantId}`}
         >
           <Icon icon='mdi:eye-outline' fontSize={20} />
           View
         </MenuItem>
-        <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
+        {/* <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:pencil-outline' fontSize={20} />
           Edit
+        </MenuItem> */}
+        <Divider />
+        <MenuItem onClick={() => handelUserAccountStatus('verified')} sx={{ '& svg': { mr: 2 } }}>
+          <Icon icon='mdi:check-circle-outline' fontSize={20} />
+          Approve
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 } }}>
+        <MenuItem onClick={() => handelUserAccountStatus('rejected')} sx={{ '& svg': { mr: 2 } }}>
+          <Icon icon='mdi:close-circle-outline' fontSize={20} />
+          Reject
+        </MenuItem>
+        <MenuItem onClick={() => handelUserAccountStatus('suspended')} sx={{ '& svg': { mr: 2 } }}>
+          <Icon icon='mdi:pause-circle-outline' fontSize={20} />
+          Suspend Account
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleDelete} sx={{ '& svg': { mr: 2 }, color: 'error.main' }}>
           <Icon icon='mdi:delete-outline' fontSize={20} />
           Delete
         </MenuItem>
@@ -162,7 +182,7 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <LinkStyled href='/apps/user/view/overview/'>{fullName}</LinkStyled>
+            <LinkStyled href={`/pages/merchants/merchant-detail?merchantId=${row.merchantId}`}>{fullName}</LinkStyled>
             <Typography noWrap variant='caption'>{row.merchantId}</Typography>
           </Box>
         </Box>
@@ -223,7 +243,7 @@ const columns = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
+    renderCell: ({ row }: CellType) => <RowOptions merchantId={row.merchantId} />
   }
 ]
 

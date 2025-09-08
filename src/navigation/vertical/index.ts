@@ -15,7 +15,7 @@ const navigation = (): VerticalNavItemsType => {
     {
       icon: 'mdi:wallet-outline',
       title: 'Wallet',
-      path: '/wallet/',
+      path: '/pages/wallet/my-wallet',
       auth: true,
       accessTo: ['merchant']
     },
