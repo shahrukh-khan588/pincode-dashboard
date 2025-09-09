@@ -1,5 +1,5 @@
 import { api } from "..";
-import { PayoutRequest, PayoutRequestResponse } from "../types";
+import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse } from "../types";
 
 export const payoutApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,12 +24,7 @@ export const payoutApi = api.injectEndpoints({
     }),
 
     // Get payout request history
-    getPayoutRequests: builder.query<{
-      items: PayoutRequestResponse[];
-      total: number;
-      page: number;
-      limit: number;
-    }, { page?: number; limit?: number; status?: string }>({
+    getPayoutRequests: builder.query<PaymentsListResponse, { page?: number; limit?: number; status?: string }>({
       query: ({ page = 1, limit = 10, status } = {}) => ({
         url: "/merchants/payments",
         params: { page, limit, ...(status && { status }) },

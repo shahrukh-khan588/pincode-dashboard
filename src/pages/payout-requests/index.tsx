@@ -28,6 +28,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
 
 // ** Types
+import type { PaymentResponse } from 'src/store/api/v1/types'
 
 // ** Icon
 import Icon from 'src/@core/components/icon'
@@ -47,8 +48,9 @@ const formatDate = (dateString: string) => {
 }
 
 const getStatusColor = (status: string) => {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case 'completed':
+    case 'success':
       return 'success'
     case 'pending':
       return 'warning'
@@ -64,8 +66,9 @@ const getStatusColor = (status: string) => {
 }
 
 const getStatusIcon = (status: string) => {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case 'completed':
+    case 'success':
       return 'mdi:check-circle'
     case 'pending':
       return 'mdi:clock-outline'
@@ -90,22 +93,33 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
   })
 
   // Extract requests from response
-  const payoutRequests = payoutResponse?.items || []
+  const payoutRequests: PaymentResponse[] = payoutResponse?.items || []
 
   // Filter requests based on active tab
-  const filteredRequests = payoutRequests.filter((request: any) => {
+  const filteredRequests = payoutRequests.filter((request: PaymentResponse) => {
     if (activeTab === 'all') return true
 
-    return request.status === activeTab
+    // Map API status to frontend status
+    const statusMapping: { [key: string]: string } = {
+      'PENDING': 'pending',
+      'SUCCESS': 'completed',
+      'FAILED': 'failed',
+      'PROCESSING': 'processing',
+      'CANCELLED': 'cancelled'
+    }
+
+    const mappedStatus = statusMapping[request.status] || request.status.toLowerCase()
+
+    return mappedStatus === activeTab
   })
 
   // Calculate statistics
   const stats = {
     total: payoutRequests.length,
-    pending: payoutRequests.filter((r: any) => r.status === 'pending').length,
-    completed: payoutRequests.filter((r: any) => r.status === 'completed').length,
-    failed: payoutRequests.filter((r: any) => r.status === 'failed').length,
-    totalAmount: payoutRequests.reduce((sum: number, r: any) => sum + r.amount, 0)
+    pending: payoutRequests.filter((r: PaymentResponse) => r.status === 'PENDING').length,
+    completed: payoutRequests.filter((r: PaymentResponse) => r.status === 'SUCCESS').length,
+    failed: payoutRequests.filter((r: PaymentResponse) => r.status === 'FAILED').length,
+    totalAmount: payoutRequests.reduce((sum: number, r: PaymentResponse) => sum + r.amount, 0)
   }
 
   const columns: GridColDef[] = [
@@ -132,53 +146,60 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
       )
     },
     {
-      field: 'bankAccountDetails',
-      headerName: 'Bank Account',
-      flex: 1.5,
-      renderCell: (params) => {
-        const bankDetails = params.value
-
-        return (
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-              <Icon icon='mdi:bank' fontSize={16} />
-            </Avatar>
-            <Box>
-              <Typography variant="body2" fontWeight={600}>
-                {bankDetails.bankName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {bankDetails.accountNumber.slice(-4)}
-              </Typography>
-            </Box>
-          </Stack>
-        )
-      }
+      field: 'provider',
+      headerName: 'Provider',
+      flex: 1,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+            <Icon icon='mdi:bank' fontSize={16} />
+          </Avatar>
+          <Box>
+            <Typography variant="body2" fontWeight={600}>
+              {params.value}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Payment Provider
+            </Typography>
+          </Box>
+        </Stack>
+      )
+    },
+    {
+      field: 'transactionRef',
+      headerName: 'Transaction Ref',
+      flex: 1.2,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+          {params.value}
+        </Typography>
+      )
     },
     {
       field: 'status',
       headerName: 'Status',
       flex: 1,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={getStatusColor(params.value) as any}
-          size="small"
-          icon={<Icon icon={getStatusIcon(params.value)} />}
-        />
-      )
-    },
-    {
-      field: 'netAmount',
-      headerName: 'Net Amount',
-      flex: 1,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: (params) => (
-        <Typography variant="body2" fontWeight={600} color="success.main">
-          {formatCurrency(params.value)}
-        </Typography>
-      )
+      renderCell: (params) => {
+        // Map API status to display status
+        const statusMapping: { [key: string]: string } = {
+          'PENDING': 'Pending',
+          'SUCCESS': 'Completed',
+          'FAILED': 'Failed',
+          'PROCESSING': 'Processing',
+          'CANCELLED': 'Cancelled'
+        }
+
+        const displayStatus = statusMapping[params.value] || params.value
+
+        return (
+          <Chip
+            label={displayStatus}
+            color={getStatusColor(params.value) as any}
+            size="small"
+            icon={<Icon icon={getStatusIcon(params.value)} />}
+          />
+        )
+      }
     }
   ]
 

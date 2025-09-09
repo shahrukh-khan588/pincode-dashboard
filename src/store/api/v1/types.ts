@@ -99,6 +99,27 @@ export interface PayoutRequest {
   description?: string;
 }
 
+// Payment/Payout Response from API (actual structure)
+export interface PaymentResponse {
+  id: string;
+  amount: number;
+  currency: string;
+  provider: string;
+  transactionRef: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED';
+  createdAt: string;
+  metadata: Record<string, any>;
+}
+
+export interface PaymentsListResponse {
+  items: PaymentResponse[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+// Legacy PayoutRequestResponse (for backward compatibility)
 export interface PayoutRequestResponse {
   id: string;
   merchantId: string;
