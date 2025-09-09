@@ -105,6 +105,7 @@ export interface PaymentResponse {
   amount: number;
   currency: string;
   provider: string;
+  merchantId: string;
   transactionRef: string;
   status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED';
   createdAt: string;

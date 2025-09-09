@@ -36,6 +36,8 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 // ** Utils Import
 
 // ** Types Imports
+import type { PaymentResponse } from 'src/store/api/v1/types'
+
 interface TransactionItem {
   id: string
   referenceId: string
@@ -51,6 +53,9 @@ interface TransactionItem {
 import TableHeader from './components/tableheader'
 import CheckTransactionDrawer from './components/checkTransactionDrawer'
 
+// ** Hooks
+import { useGetAdminPaymentsQuery } from 'src/store/api/v1/endpoints/admin'
+
 interface CellType {
   row: TransactionItem
 }
@@ -64,59 +69,6 @@ const statusIconObj: { [key: string]: { icon: string; color: string } } = {
   not_checked: { icon: 'mdi:clock-outline', color: 'warning.main' }
 }
 
-// Mock data for demonstration
-const mockTransactions: TransactionItem[] = [
-  {
-    id: '1',
-    referenceId: 'TXN-2024-001',
-    requestedFrom: 'John Doe',
-    isCompany: false,
-    timestamp: '2024-01-15T10:30:00Z',
-    amount: 1500.00,
-    currency: 'Rs',
-    status: 'success'
-  },
-  {
-    id: '2',
-    referenceId: 'TXN-2024-002',
-    requestedFrom: 'TechCorp Solutions',
-    isCompany: true,
-    timestamp: '2024-01-15T11:45:00Z',
-    amount: 2500.00,
-    currency: 'Rs',
-    status: 'failed'
-  },
-  {
-    id: '3',
-    referenceId: 'TXN-2024-003',
-    requestedFrom: 'Sarah Wilson',
-    isCompany: false,
-    timestamp: '2024-01-15T12:15:00Z',
-    amount: 800.00,
-    currency: 'Rs',
-    status: 'not_checked'
-  },
-  {
-    id: '4',
-    referenceId: 'TXN-2024-004',
-    requestedFrom: 'Global Enterprises',
-    isCompany: true,
-    timestamp: '2024-01-15T13:20:00Z',
-    amount: 5000.00,
-    currency: 'Rs',
-    status: 'success'
-  },
-  {
-    id: '5',
-    referenceId: 'TXN-2024-005',
-    requestedFrom: 'Mike Johnson',
-    isCompany: false,
-    timestamp: '2024-01-15T14:05:00Z',
-    amount: 1200.00,
-    currency: 'Rs',
-    status: 'not_checked'
-  }
-]
 
 // ** renders user/company column
 const renderUser = (row: TransactionItem) => {
@@ -137,7 +89,7 @@ const renderUser = (row: TransactionItem) => {
           {name}
         </Typography>
         <Typography noWrap variant='caption' sx={{ color: 'text.disabled' }}>
-          {row.isCompany ? 'Company' : 'Individual'}
+          {row.isCompany ? 'Merchant' : 'Individual'}
         </Typography>
       </Box>
     </Box>
@@ -335,6 +287,12 @@ const TransactionList = () => {
   const [pageSize, setPageSize] = useState<number>(10)
   const [checkTransactionOpen, setCheckTransactionOpen] = useState<boolean>(false)
 
+  // ** Fetch admin payments data
+  const { data: paymentsResponse, isLoading, error } = useGetAdminPaymentsQuery({
+    page: 1,
+    limit: 100
+  })
+
   // ** Alert visibility state
   const [visibleAlerts, setVisibleAlerts] = useState({
     success: true,
@@ -343,14 +301,26 @@ const TransactionList = () => {
     info: true
   })
 
+  // ** Transform API data to match existing interface
+  const transformedTransactions: TransactionItem[] = (paymentsResponse?.items || []).map((payment: PaymentResponse) => ({
+    id: payment.id,
+    referenceId: payment.transactionRef,
+    requestedFrom: payment.merchantId, // Using merchantId as requestedFrom for now
+    isCompany: true, // Assuming merchants are companies
+    timestamp: payment.createdAt,
+    amount: payment.amount,
+    currency: payment.currency,
+    status: payment.status === 'SUCCESS' ? 'success' : payment.status === 'FAILED' ? 'failed' : 'not_checked'
+  }))
+
   // ** Calculate statistics
-  const successTransactions = mockTransactions.filter(t => t.status === 'success').length
-  const failedTransactions = mockTransactions.filter(t => t.status === 'failed').length
-  const notCheckedTransactions = mockTransactions.filter(t => t.status === 'not_checked').length
-  const totalAmount = mockTransactions.reduce((sum, t) => sum + t.amount, 0)
+  const successTransactions = transformedTransactions.filter(t => t.status === 'success').length
+  const failedTransactions = transformedTransactions.filter(t => t.status === 'failed').length
+  const notCheckedTransactions = transformedTransactions.filter(t => t.status === 'not_checked').length
+  const totalAmount = transformedTransactions.reduce((sum, t) => sum + t.amount, 0)
 
   // ** Filter transactions based on search and status
-  const filteredTransactions = mockTransactions.filter(transaction => {
+  const filteredTransactions = transformedTransactions.filter(transaction => {
     const matchesSearch = searchValue === '' ||
       transaction.referenceId.toLowerCase().includes(searchValue.toLowerCase()) ||
       transaction.requestedFrom.toLowerCase().includes(searchValue.toLowerCase())
@@ -499,17 +469,37 @@ const TransactionList = () => {
             toggle={toggleCheckTransactionDrawer}
           />
           <Box sx={{ width: '100%', overflowX: 'hidden' }}>
-            <DataGrid
-              autoHeight
-              rows={filteredTransactions}
-              columns={columns}
-              checkboxSelection
-              pageSize={pageSize}
-              disableSelectionOnClick
-              rowsPerPageOptions={[10, 25, 50]}
-              onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
-              loading={false}
-            />
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                <Typography>Loading transactions...</Typography>
+              </Box>
+            ) : error ? (
+              <Alert severity="error" sx={{ m: 2 }}>
+                Failed to load transactions. Please try again.
+              </Alert>
+            ) : filteredTransactions.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Icon icon='mdi:receipt-outline' style={{ fontSize: '48px', color: '#666', marginBottom: '16px' }} />
+                <Typography variant='h6' sx={{ mb: 1 }}>
+                  No transactions found
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  {searchValue || statusFilter ? 'No transactions match your filters.' : 'No transactions available.'}
+                </Typography>
+              </Box>
+            ) : (
+              <DataGrid
+                autoHeight
+                rows={filteredTransactions}
+                columns={columns}
+                checkboxSelection
+                pageSize={pageSize}
+                disableSelectionOnClick
+                rowsPerPageOptions={[10, 25, 50]}
+                onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
+                loading={isLoading}
+              />
+            )}
           </Box>
         </Card>
       </Grid>
