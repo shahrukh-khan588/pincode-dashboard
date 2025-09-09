@@ -483,7 +483,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                       textAlign: 'right'
                     }}
                   >
-                    {showAccountInfo ? merchant.bankAccountDetails?.accountNumber : maskAccount(merchant.bankAccountDetails?.accountNumber)}
+                    {showAccountInfo ? merchant?.bankAccountDetails?.accountNumber : maskAccount(merchant?.bankAccountDetails?.accountNumber)}
                   </Typography>
                 </motion.div>
               </Box>
@@ -508,7 +508,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     mb: 2
                   }}
                 >
-                  {merchant.bankAccountDetails?.accountTitle}
+                  {merchant?.bankAccountDetails?.accountTitle}
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="flex-end">
                   <Icon
@@ -523,7 +523,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                       textTransform: 'uppercase'
                     }}
                   >
-                    {merchant.verificationStatus} Account
+                    {merchant?.verificationStatus} Account
                   </Typography>
                 </Stack>
               </Box>
@@ -618,7 +618,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     fontSize: '1rem'
                   }}
                 >
-                  {merchant.bankAccountDetails?.bankName}
+                  {merchant?.bankAccountDetails?.bankName}
                 </Typography>
               </Box>
 
@@ -646,7 +646,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                   </IconButton>
                   <IconButton
                     size='small'
-                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails?.accountNumber || '')}
+                    onClick={() => navigator.clipboard.writeText(merchant?.bankAccountDetails?.accountNumber || '')}
                     sx={{
                       color: 'grey.400',
                       bgcolor: 'rgba(255,255,255,0.1)',
@@ -677,7 +677,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                       textAlign: 'right'
                     }}
                   >
-                    {showBankInfo ? merchant.bankAccountDetails?.accountNumber : maskAccount(merchant.bankAccountDetails?.accountNumber)}
+                    {showBankInfo ? merchant?.bankAccountDetails?.accountNumber : maskAccount(merchant?.bankAccountDetails?.accountNumber)}
                   </Typography>
                 </motion.div>
               </Box>
@@ -709,12 +709,12 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                         letterSpacing: showBankInfo ? '1px' : '2px'
                       }}
                     >
-                      {showBankInfo ? merchant.bankAccountDetails?.iban : maskAccount(merchant.bankAccountDetails?.iban)}
+                      {showBankInfo ? merchant?.bankAccountDetails?.iban : maskAccount(merchant?.bankAccountDetails?.iban)}
                     </Typography>
                   </motion.div>
                   <IconButton
                     size='small'
-                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails?.iban || '')}
+                    onClick={() => navigator.clipboard.writeText(merchant?.bankAccountDetails?.iban || '')}
                     sx={{
                       color: 'grey.400',
                       bgcolor: 'rgba(255,255,255,0.1)',
@@ -771,10 +771,10 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                           </Avatar>
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {merchant.bankAccountDetails?.bankName}
+                              {merchant?.bankAccountDetails?.bankName}
                             </Typography>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                              {maskAccount(merchant.bankAccountDetails?.accountNumber)}
+                              {maskAccount(merchant?.bankAccountDetails?.accountNumber)}
                             </Typography>
                           </Box>
                         </Stack>
@@ -853,7 +853,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     AVAILABLE BALANCE
                   </Typography>
                   <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-                    {formatCurrency(merchant?.walletBalance?.availableBalance || 0 - transferAmount)}
+                    {formatCurrency(merchant?.walletBalance?.availableBalance || 0 - transferAmount || 0)}
                   </Typography>
                 </Stack>
 
