@@ -50,7 +50,8 @@ export const api = createApi({
     "Merchants",
     "PayoutRequests",
     "PayoutRequest",
-    "WalletDetails",
+    "WalletDetails", "AdminPayments"
+
   ],
   endpoints: () => ({}),
   keepUnusedDataFor: 0, // Don't cache data
