@@ -23,12 +23,12 @@ import Alert from '@mui/material/Alert'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 
-
 //
 import IconButton from '@mui/material/IconButton'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
 
 // ** Types
 import type { MerchantDataType } from 'src/context/types'
@@ -111,7 +111,27 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
   const [selectedBank, setSelectedBank] = useState('')
   const [activeTab, setActiveTab] = useState<'personal' | 'bank' | 'transactions'>('personal')
 
-  const merchant = useMemo(() => (user as MerchantDataType | null) || mockMerchant, [user])
+  // ** Fetch wallet details from API
+  const { data: walletDetails, isLoading: isWalletLoading, error: walletError } = useGetWalletDetailsQuery()
+
+  const merchant = useMemo(() => {
+    const baseMerchant = (user as MerchantDataType | null) || mockMerchant
+
+    // Update wallet balance with real API data if available
+    if (walletDetails) {
+      return {
+        ...baseMerchant,
+        walletBalance: {
+          availableBalance: walletDetails.availableBalance,
+          pendingBalance: walletDetails.pendingBalance,
+          totalEarnings: walletDetails.totalEarnings,
+          lastUpdated: walletDetails.lastUpdated
+        }
+      }
+    }
+
+    return baseMerchant
+  }, [user, walletDetails])
 
   const maskBalance = (value: number) => showAccountInfo ? formatCurrency(value) : '••••••'
 
@@ -141,20 +161,30 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
             />
             <Divider />
             <CardContent>
-              <Grid container spacing={6}>
-                <Grid item xs={12} sm={4}>
-                  <Typography sx={{ color: 'text.secondary' }}>Available</Typography>
-                  <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.availableBalance || 0)}</Typography>
+              {isWalletLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <Typography>Loading wallet details...</Typography>
+                </Box>
+              ) : walletError ? (
+                <Alert severity="error">
+                  Failed to load wallet details. Please try again.
+                </Alert>
+              ) : (
+                <Grid container spacing={6}>
+                  <Grid item xs={12} sm={4}>
+                    <Typography sx={{ color: 'text.secondary' }}>Available</Typography>
+                    <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.availableBalance || 0)}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography sx={{ color: 'text.secondary' }}>Pending</Typography>
+                    <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.pendingBalance || 0)}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Typography sx={{ color: 'text.secondary' }}>Total Earnings</Typography>
+                    <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.totalEarnings || 0)}</Typography>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography sx={{ color: 'text.secondary' }}>Pending</Typography>
-                  <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.pendingBalance || 0)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography sx={{ color: 'text.secondary' }}>Total Earnings</Typography>
-                  <Typography variant='h5' sx={{ mt: 1 }}>{formatCurrency(merchant?.walletBalance?.totalEarnings || 0)}</Typography>
-                </Grid>
-              </Grid>
+              )}
             </CardContent>
           </Card>
 
@@ -453,7 +483,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                       textAlign: 'right'
                     }}
                   >
-                    {showAccountInfo ? merchant.bankAccountDetails.accountNumber : maskAccount(merchant.bankAccountDetails.accountNumber)}
+                    {showAccountInfo ? merchant.bankAccountDetails?.accountNumber : maskAccount(merchant.bankAccountDetails?.accountNumber)}
                   </Typography>
                 </motion.div>
               </Box>
@@ -478,7 +508,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     mb: 2
                   }}
                 >
-                  {merchant?.bankAccountDetails?.accountTitle}
+                  {merchant.bankAccountDetails?.accountTitle}
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="flex-end">
                   <Icon
@@ -588,7 +618,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     fontSize: '1rem'
                   }}
                 >
-                  {merchant.bankAccountDetails.bankName}
+                  {merchant.bankAccountDetails?.bankName}
                 </Typography>
               </Box>
 
@@ -616,7 +646,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                   </IconButton>
                   <IconButton
                     size='small'
-                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails.accountNumber)}
+                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails?.accountNumber || '')}
                     sx={{
                       color: 'grey.400',
                       bgcolor: 'rgba(255,255,255,0.1)',
@@ -647,7 +677,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                       textAlign: 'right'
                     }}
                   >
-                    {showBankInfo ? merchant.bankAccountDetails.accountNumber : maskAccount(merchant.bankAccountDetails.accountNumber)}
+                    {showBankInfo ? merchant.bankAccountDetails?.accountNumber : maskAccount(merchant.bankAccountDetails?.accountNumber)}
                   </Typography>
                 </motion.div>
               </Box>
@@ -679,12 +709,12 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                         letterSpacing: showBankInfo ? '1px' : '2px'
                       }}
                     >
-                      {showBankInfo ? merchant.bankAccountDetails.iban : maskAccount(merchant.bankAccountDetails.iban)}
+                      {showBankInfo ? merchant.bankAccountDetails?.iban : maskAccount(merchant.bankAccountDetails?.iban)}
                     </Typography>
                   </motion.div>
                   <IconButton
                     size='small'
-                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails.iban)}
+                    onClick={() => navigator.clipboard.writeText(merchant.bankAccountDetails?.iban || '')}
                     sx={{
                       color: 'grey.400',
                       bgcolor: 'rgba(255,255,255,0.1)',
@@ -699,29 +729,6 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                     <Icon icon='mdi:content-copy' fontSize={12} />
                   </IconButton>
                 </Stack>
-              </Box>
-
-              {/* Branch Code - Bottom Right */}
-              <Box sx={{ position: 'absolute', bottom: -80, left: 25, textAlign: 'left' }}>
-                <Typography
-                  sx={{
-                    color: 'grey.400',
-                    fontSize: '0.65rem',
-                    mb: 0.5
-                  }}
-                >
-                  BRANCH CODE
-                </Typography>
-                <Typography
-                  sx={{
-                    color: 'common.white',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  {merchant.bankAccountDetails.branchCode}
-                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -764,10 +771,10 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                           </Avatar>
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {merchant.bankAccountDetails.bankName}
+                              {merchant.bankAccountDetails?.bankName}
                             </Typography>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                              {maskAccount(merchant.bankAccountDetails.accountNumber)}
+                              {maskAccount(merchant.bankAccountDetails?.accountNumber)}
                             </Typography>
                           </Box>
                         </Stack>
@@ -922,7 +929,6 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
 }
 
 MerchantProfilePage.authGuard = true
-MerchantProfilePage.merchantApprovalGuard = true
 
 export default MerchantProfilePage
 

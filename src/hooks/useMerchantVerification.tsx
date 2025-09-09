@@ -1,5 +1,5 @@
 import { useAuth } from './useAuth'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 export const useMerchantVerification = () => {
   const { user, refreshMerchantProfile } = useAuth()
@@ -7,7 +7,7 @@ export const useMerchantVerification = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   // Check if user is a merchant and get verification status
-  const checkVerificationStatus = () => {
+  const checkVerificationStatus = useCallback(() => {
     if (user && (user as any).merchantId) {
       const merchant = user as any
 
@@ -15,7 +15,7 @@ export const useMerchantVerification = () => {
     }
 
     return true // Admin users are always considered verified
-  }
+  }, [user])
 
   // Refresh merchant profile and update verification status
   const refreshVerificationStatus = async () => {
@@ -37,7 +37,7 @@ export const useMerchantVerification = () => {
   // Update verification status when user changes
   useEffect(() => {
     setIsVerified(checkVerificationStatus())
-  }, [user])
+  }, [user, checkVerificationStatus])
 
   return {
     isVerified,

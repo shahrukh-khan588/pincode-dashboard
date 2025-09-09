@@ -127,7 +127,15 @@ const VerticalLayout = (props: LayoutProps) => {
         <Fade timeout={500} in={navCollapsed}>
           <Fab aria-label='edit' disableRipple disableFocusRipple
             onClick={() => saveSettings({ ...settings, navCollapsed: !navCollapsed })}
-            sx={{ position: 'absolute', width: '35px', height: '10px', left: 50, top: 50, zIndex: 9999 }}>
+            sx={{
+              position: 'absolute',
+              width: '35px',
+              height: '10px',
+              left: 50,
+              top: 50,
+              zIndex: 9999,
+              display: { xs: 'none', lg: 'flex' }
+            }}>
             <Icon icon='mdi:menu-close' fontSize='1.2rem' />
           </Fab>
         </Fade>
@@ -135,7 +143,15 @@ const VerticalLayout = (props: LayoutProps) => {
         <Fade timeout={500} in={!navCollapsed}>
           <Fab aria-label='edit' disableRipple disableFocusRipple
             onClick={() => saveSettings({ ...settings, navCollapsed: !navCollapsed })}
-            sx={{ position: 'absolute', width: '35px', height: '10px', left: 283, top: 50, zIndex: 9999 }}>
+            sx={{
+              position: 'absolute',
+              width: '35px',
+              height: '10px',
+              left: 283,
+              top: 50,
+              zIndex: 9999,
+              display: { xs: 'none', lg: 'flex' }
+            }}>
             <Icon icon='mdi:menu-open' fontSize='1.2rem' />
           </Fab>
         </Fade>

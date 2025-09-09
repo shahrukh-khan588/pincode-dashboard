@@ -31,6 +31,7 @@ export const adminApi = api.injectEndpoints({
         method: 'PATCH',
         body: { verificationStatus: status },
       }),
+      invalidatesTags: ["Merchants"],
       transformErrorResponse: (error: FetchBaseQueryError) =>
         transformErrorResponse(
           error,

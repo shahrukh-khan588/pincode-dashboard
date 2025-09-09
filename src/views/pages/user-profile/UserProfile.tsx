@@ -24,7 +24,6 @@ import Icon from 'src/@core/components/icon'
 // ** Demo Components
 import BankDetails from '@/views/pages/user-profile/banks'
 import Profile from 'src/views/pages/user-profile/profile'
-import Transactions from '@/views/pages/user-profile/transactions'
 import Requests from '@/views/pages/user-profile/requests'
 import UserProfileHeader from 'src/views/pages/user-profile/UserProfileHeader'
 
@@ -92,7 +91,6 @@ const UserProfile = ({ tab, data }: { tab: string; data: MerchantProfile }) => {
   const tabContentList: { [key: string]: ReactElement } = {
     profile: <Profile data={data} />,
     'bank-details': <BankDetails data={data} />,
-    transactions: <Transactions data={[]} />,
     requests: <Requests />
   }
 
@@ -139,15 +137,7 @@ const UserProfile = ({ tab, data }: { tab: string; data: MerchantProfile }) => {
                       </Box>
                     }
                   />
-                  <Tab
-                    value='requests'
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
-                        <Icon fontSize={20} icon='mdi:clipboard-text-clock-outline' />
-                        {!hideText && 'Requests'}
-                      </Box>
-                    }
-                  />
+
                   {/* <Tab
                     value='connections'
                     label={

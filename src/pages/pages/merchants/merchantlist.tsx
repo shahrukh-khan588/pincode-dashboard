@@ -31,6 +31,8 @@ import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 
+import { toast } from 'react-hot-toast'
+
 // ** Utils Import
 import { getInitials } from 'src/@core/utils/get-initials'
 
@@ -103,8 +105,14 @@ const RowOptions = ({ merchantId }: { merchantId: string }) => {
     setAnchorEl(null)
   }
 
-  const handelUserAccountStatus = (status: 'rejected' | 'verified' | 'suspended') => {
-    handelChangeUserStatus({ merchantId, status })
+  const handelUserAccountStatus = async (status: 'rejected' | 'verified' | 'suspended') => {
+    try {
+      await handelChangeUserStatus({ merchantId, status }).unwrap()
+      toast.success('Merchant status updated successfully')
+      handleRowOptionsClose()
+    } catch (error) {
+      console.error('❌ Failed to change status:', error)
+    }
   }
 
   const handleDelete = () => {

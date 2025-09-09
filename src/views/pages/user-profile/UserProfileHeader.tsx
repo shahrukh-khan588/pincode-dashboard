@@ -13,19 +13,60 @@ import Icon from 'src/@core/components/icon'
 // ** Types
 import { MerchantProfile } from '@/store/api/v1/types'
 
+import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts'
+
+
 const HeaderCover = styled(Box)(({ theme }) => ({
   width: '100%',
-  background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
-  height: 250,
+  opacity: 0.9,
+  background: 'linear-gradient(135deg, rgba(5, 62, 248, 0.6) 0%, rgba(145, 85, 253, 0.05) 100%)',
+  height: 'auto',
   [theme.breakpoints.down('md')]: { height: 150 }
 }))
+
+const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const UserProfileHeader = ({ data }: { data: MerchantProfile }) => {
   const fullName = `${data.firstName} ${data.lastName}`.trim()
 
+  const balanceSeries = monthLabels.map((m, idx) => ({ month: m, balance: 50 + idx * 5 + (idx % 3) * 7 }))
+
+  const BalanceAreaChart = () => (
+    <Box sx={{ width: '100%', height: 260, textAlign: 'center' }}>
+      <ResponsiveContainer width='100%' height='100%'>
+        <AreaChart data={balanceSeries} margin={{ left: -20, right: 10 }}>
+          <defs>
+            <linearGradient id='balanceGradient' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='5%' stopColor='#00D4AA' stopOpacity={0.8} />
+              <stop offset='50%' stopColor='#00D4AA' stopOpacity={0.4} />
+              <stop offset='95%' stopColor='#00D4AA' stopOpacity={0.05} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray='3 3' vertical={false} stroke='rgba(0, 0, 0, 0.1)' />
+          <XAxis dataKey='month' axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} />
+          <RechartsTooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+          <Area type='monotone' dataKey='balance' stroke='#00D4AA' fill='url(#balanceGradient)' strokeWidth={3} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </Box>
+  )
+
+
   return (
     <Card>
-      <HeaderCover />
+      <HeaderCover >
+        <CardContent>
+          <BalanceAreaChart />
+        </CardContent>
+      </HeaderCover>
       <CardContent
         sx={{
           pt: 0,

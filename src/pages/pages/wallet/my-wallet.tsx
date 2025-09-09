@@ -13,7 +13,6 @@ import Button from '@mui/material/Button'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
@@ -25,10 +24,10 @@ import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
+import Stack from '@mui/material/Stack'
 import { styled, useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
@@ -36,43 +35,23 @@ import Icon from 'src/@core/components/icon'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
+import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
+
+// ** Types
+import type { MerchantDataType } from 'src/context/types'
+
+// ** Components
+import CardWelcomeBack from 'src/views/ui/cards/gamification/CardWelcomeBack'
+import PincodeInput from 'src/@core/components/PincodeInput'
+import PayoutRequestForm from '@/pages/components/PayoutRequestForm'
 
 // ** Styled Components
-const WalletCard = styled(Card)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-  color: theme.palette.primary.contrastText,
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'url("/images/cards/credit-card.png")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    opacity: 0.1,
-    zIndex: 0
-  }
-}))
-
 const TransactionItem = styled(ListItem)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.spacing(1),
   marginBottom: theme.spacing(1),
   '&:hover': {
     backgroundColor: theme.palette.action.hover
-  }
-}))
-
-const BalanceAmount = styled(Typography)(({ theme }) => ({
-  fontSize: '2.5rem',
-  fontWeight: 700,
-  textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-  [theme.breakpoints.down('md')]: {
-    fontSize: '2rem'
   }
 }))
 
@@ -116,12 +95,6 @@ const mockTransactions = [
   }
 ]
 
-const mockWalletHistory = [
-  { month: 'January 2024', total: 45000, transactions: 45 },
-  { month: 'December 2023', total: 38000, transactions: 38 },
-  { month: 'November 2023', total: 42000, transactions: 42 },
-  { month: 'October 2023', total: 35000, transactions: 35 }
-]
 
 const Wallet = () => {
   // ** States
@@ -129,18 +102,68 @@ const Wallet = () => {
   const [showAddMoney, setShowAddMoney] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
   const [amount, setAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('')
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+  const [transferAmount, setTransferAmount] = useState(10000)
+  const [selectedBank, setSelectedBank] = useState('')
+  const [showPincodeDialog, setShowPincodeDialog] = useState(false)
+  const [pincodeAction, setPincodeAction] = useState<'transfer' | 'withdraw' | 'setup' | null>(null)
+  const [userPincode, setUserPincode] = useState<string | null>(null)
+  const [pincodeError, setPincodeError] = useState('')
 
   // ** Hooks
   const theme = useTheme()
   const router = useRouter()
   const auth = useAuth()
 
-  // ** Mock Data
-  const walletBalance = 28450
-  const totalEarnings = 125000
-  const pendingAmount = 3500
+  // ** Fetch wallet details from API
+  const { data: walletDetails, isLoading: isWalletLoading, error: walletError } = useGetWalletDetailsQuery()
+
+  // ** Debug: Log wallet data
+  React.useEffect(() => {
+    if (walletDetails) {
+      console.log('💰 Wallet Details:', walletDetails)
+    }
+    if (walletError) {
+      console.error('❌ Wallet Error:', walletError)
+    }
+  }, [walletDetails, walletError])
+
+  // ** Mock merchant data for transfer functionality (keeping for bank details)
+  const mockMerchant: MerchantDataType = {
+    merchantId: 'MERCH_1755529411388_mr61qtivk',
+    email: 'malik.electronics@gmail.com',
+    firstName: 'Muhammad',
+    lastName: 'Malik',
+    businessName: 'Malik Electronics & Mobile Center',
+    businessAddress: 'Shop No. 15, Main Bazaar, Saddar, Rawalpindi, Punjab, Pakistan',
+    taxId: 'NTN-9876543-2',
+    phoneNumber: '+92-51-5551234',
+    verificationStatus: 'pending',
+    isActive: true,
+    walletBalance: {
+      availableBalance: walletDetails?.availableBalance || 0,
+      pendingBalance: walletDetails?.pendingBalance || 0,
+      totalEarnings: walletDetails?.totalEarnings || 0,
+      lastUpdated: walletDetails?.lastUpdated || new Date().toISOString()
+    },
+    bankAccountDetails: {
+      accountNumber: '0987654321098',
+      accountTitle: 'Malik Electronics & Mobile Center',
+      bankName: 'MCB Bank Limited',
+      branchCode: '0456',
+      iban: 'PK24MUCB0004560987654321098'
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(value)
+  const maskAccount = (value?: string) => {
+    if (!value) return '-'
+    const last4 = value.slice(-4)
+
+    return `•••• •••• •••• ${last4}`
+  }
 
   const handleLogout = () => {
     auth.logout()
@@ -148,27 +171,94 @@ const Wallet = () => {
   }
 
   const handleAddMoney = () => {
-    if (amount && paymentMethod) {
+    if (amount) {
       setSnackbar({
         open: true,
-        message: `Successfully added ₹${amount} to wallet`,
+        message: `Successfully added RS: ${amount} to wallet`,
         severity: 'success'
       })
       setShowAddMoney(false)
       setAmount('')
-      setPaymentMethod('')
     }
   }
 
-  const handleWithdraw = () => {
-    if (amount) {
+
+
+  const handlePincodeComplete = (pincode: string) => {
+    setPincodeError('')
+
+    if (pincodeAction === 'setup') {
+      // Setting up new pincode
+      setUserPincode(pincode)
       setSnackbar({
         open: true,
-        message: `Withdrawal request of ₹${amount} submitted`,
+        message: 'PIN set successfully! Your wallet is now secured.',
+        severity: 'success'
+      })
+      setShowPincodeDialog(false)
+      setPincodeAction(null)
+    } else {
+      // Verifying existing pincode
+      if (userPincode && pincode === userPincode) {
+        setSnackbar({
+          open: true,
+          message: 'PIN verified successfully!',
+          severity: 'success'
+        })
+
+        // Execute the action based on pincodeAction
+        if (pincodeAction === 'transfer') {
+          executeTransfer()
+        } else if (pincodeAction === 'withdraw') {
+          executeWithdraw()
+        }
+
+        setShowPincodeDialog(false)
+        setPincodeAction(null)
+      } else {
+        setPincodeError('Invalid PIN. Please try again.')
+      }
+    }
+  }
+
+  const handlePincodeError = (error: string) => {
+    setPincodeError(error)
+  }
+
+  const openPincodeDialog = (action: 'transfer' | 'withdraw' | 'setup') => {
+    if (action === 'setup' || !userPincode) {
+      setPincodeAction('setup')
+      setShowPincodeDialog(true)
+    } else {
+      setPincodeAction(action)
+      setShowPincodeDialog(true)
+    }
+  }
+
+  const executeTransfer = () => {
+    if (selectedBank && transferAmount <= (mockMerchant?.walletBalance?.availableBalance || 0)) {
+      setSnackbar({
+        open: true,
+        message: `Successfully transferred ${formatCurrency(transferAmount)} to your bank account`,
+        severity: 'success'
+      })
+
+      // Reset form
+      setTransferAmount(10000)
+      setSelectedBank('')
+    }
+  }
+
+  const executeWithdraw = () => {
+    if (amount && selectedBank) {
+      setSnackbar({
+        open: true,
+        message: `Withdrawal request of ${formatCurrency(parseInt(amount))} to ${mockMerchant?.bankAccountDetails?.bankName} submitted`,
         severity: 'success'
       })
       setShowWithdraw(false)
       setAmount('')
+      setSelectedBank('')
     }
   }
 
@@ -187,100 +277,83 @@ const Wallet = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Welcome Back Card */}
+      <Box sx={{ mb: 4 }}>
+
+      </Box>
+
       {/* Wallet Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant='h4' sx={{ mb: 1, fontWeight: 600 }}>
-          My Wallet
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant='h4' sx={{ fontWeight: 600 }}>
+            My Wallet
+          </Typography>
+          {!userPincode && (
+            <Button
+              variant='contained'
+              size='small'
+              startIcon={<Icon icon='mdi:lock-plus' />}
+              onClick={() => openPincodeDialog('setup')}
+              sx={{ ml: 2 }}
+            >
+              Set PIN
+            </Button>
+          )}
+        </Box>
         <Typography variant='body1' color='text.secondary'>
-          Manage your payments, transactions, and wallet settings
+          Manage your payments, transactions
         </Typography>
+        {userPincode && (
+          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
+            <Chip
+              label='Secured with PIN'
+              color='success'
+              size='small'
+              icon={<Icon icon='mdi:shield-check' />}
+            />
+          </Box>
+        )}
       </Box>
 
       <Grid container spacing={3}>
         {/* Wallet Balance Card */}
-        <Grid item xs={12} md={8}>
-          <WalletCard>
-            <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                <Box>
-                  <Typography variant='body2' sx={{ opacity: 0.8 }}>
-                    Available Balance
-                  </Typography>
-                  <BalanceAmount>
-                    ₹{walletBalance.toLocaleString()}
-                  </BalanceAmount>
+        <Grid item xs={12} md={12}>
+          {isWalletLoading ? (
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                  <Typography>Loading wallet details...</Typography>
                 </Box>
-                <IconButton sx={{ color: 'white' }}>
-                  <Icon icon='mdi:dots-vertical' />
-                </IconButton>
-              </Box>
-
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Button
-                  variant='contained'
-                  startIcon={<Icon icon='mdi:plus' />}
-                  onClick={() => setShowAddMoney(true)}
-                  sx={{
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    color: 'white',
-                    '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-                  }}
-                >
-                  Add Money
-                </Button>
-                <Button
-                  variant='outlined'
-                  startIcon={<Icon icon='mdi:arrow-up' />}
-                  onClick={() => setShowWithdraw(true)}
-                  sx={{
-                    borderColor: 'rgba(255,255,255,0.5)',
-                    color: 'white',
-                    '&:hover': { borderColor: 'white' }
-                  }}
-                >
-                  Withdraw
-                </Button>
-              </Box>
-            </CardContent>
-          </WalletCard>
+              </CardContent>
+            </Card>
+          ) : walletError ? (
+            <Card>
+              <CardContent>
+                <Alert severity="error">
+                  Failed to load wallet details. Please try again.
+                </Alert>
+              </CardContent>
+            </Card>
+          ) : walletDetails ? (
+            <CardWelcomeBack
+              merchant={mockMerchant}
+              walletBalance={walletDetails.availableBalance}
+              totalEarnings={walletDetails.totalEarnings}
+              pendingAmount={walletDetails.pendingBalance}
+              onWithdraw={() => setShowWithdraw(true)}
+            />
+          ) : (
+            <Card>
+              <CardContent>
+                <Alert severity="warning">
+                  No wallet data available. Please contact support.
+                </Alert>
+              </CardContent>
+            </Card>
+          )}
         </Grid>
 
-        {/* Quick Stats */}
-        <Grid item xs={12} md={4}>
-          <Grid container spacing={2}>
-            <Grid item xs={6} md={12}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Icon icon='mdi:trending-up' color={theme.palette.success.main} />
-                    <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
-                      Total Earnings
-                    </Typography>
-                  </Box>
-                  <Typography variant='h6' fontWeight={600}>
-                    ₹{totalEarnings.toLocaleString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={6} md={12}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Icon icon='mdi:clock-outline' color={theme.palette.warning.main} />
-                    <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
-                      Pending
-                    </Typography>
-                  </Box>
-                  <Typography variant='h6' fontWeight={600}>
-                    ₹{pendingAmount.toLocaleString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Grid>
+
 
         {/* Navigation Tabs */}
         <Grid item xs={12}>
@@ -288,8 +361,7 @@ const Wallet = () => {
             <Box sx={{ display: 'flex', borderBottom: 1, borderColor: 'divider' }}>
               {[
                 { key: 'transactions', label: 'Recent Transactions', icon: 'mdi:swap-horizontal' },
-                { key: 'history', label: 'Transaction History', icon: 'mdi:history' },
-                { key: 'settings', label: 'Wallet Settings', icon: 'mdi:cog' },
+                { key: 'transfer', label: 'Quick Transfer', icon: 'mdi:bank-transfer' },
                 { key: 'support', label: 'Support', icon: 'mdi:help-circle' }
               ].map((tab) => (
                 <Button
@@ -317,6 +389,55 @@ const Wallet = () => {
 
         {/* Content Sections */}
         <Grid item xs={12}>
+          {selectedTab === 'transfer' && (
+            <>
+              {isWalletLoading ? (
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                      <Typography>Loading wallet details...</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ) : walletError ? (
+                <Card>
+                  <CardContent>
+                    <Alert severity="error">
+                      Failed to load wallet details. Please try again.
+                    </Alert>
+                  </CardContent>
+                </Card>
+              ) : walletDetails ? (
+                <PayoutRequestForm
+                  merchant={mockMerchant}
+                  onSuccess={() => {
+                    setSnackbar({
+                      open: true,
+                      message: 'Payout request submitted successfully!',
+                      severity: 'success'
+                    })
+
+                    // Redirect to payout requests page
+                    setTimeout(() => {
+                      // window.location.href = '/payout-requests'
+                    }, 1500)
+                  }}
+                  onCancel={() => {
+                    // Optional: Add any cancel logic here
+                  }}
+                />
+              ) : (
+                <Card>
+                  <CardContent>
+                    <Alert severity="warning">
+                      No wallet data available. Please contact support.
+                    </Alert>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+
           {selectedTab === 'transactions' && (
             <Card>
               <CardContent>
@@ -341,7 +462,7 @@ const Wallet = () => {
                         fontWeight={600}
                         color={transaction.type === 'credit' ? 'success.main' : 'error.main'}
                       >
-                        {transaction.type === 'credit' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
+                        {transaction.type === 'credit' ? '+' : '-'}RS: {transaction.amount.toLocaleString()}
                       </Typography>
                       <Chip
                         label={transaction.status}
@@ -356,80 +477,7 @@ const Wallet = () => {
             </Card>
           )}
 
-          {selectedTab === 'history' && (
-            <Card>
-              <CardContent>
-                <Typography variant='h6' sx={{ mb: 3 }}>
-                  Transaction History
-                </Typography>
-                <Grid container spacing={2}>
-                  {mockWalletHistory.map((month, index) => (
-                    <Grid item xs={12} sm={6} md={3} key={index}>
-                      <Card variant='outlined'>
-                        <CardContent>
-                          <Typography variant='body2' color='text.secondary'>
-                            {month.month}
-                          </Typography>
-                          <Typography variant='h6' fontWeight={600}>
-                            ₹{month.total.toLocaleString()}
-                          </Typography>
-                          <Typography variant='body2' color='text.secondary'>
-                            {month.transactions} transactions
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
-          )}
 
-          {selectedTab === 'settings' && (
-            <Card>
-              <CardContent>
-                <Typography variant='h6' sx={{ mb: 3 }}>
-                  Wallet Settings
-                </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Default Payment Method</InputLabel>
-                      <Select
-                        value={paymentMethod}
-                        label='Default Payment Method'
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                      >
-                        <MenuItem value='upi'>UPI</MenuItem>
-                        <MenuItem value='card'>Credit/Debit Card</MenuItem>
-                        <MenuItem value='netbanking'>Net Banking</MenuItem>
-                        <MenuItem value='wallet'>Digital Wallet</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Transaction Limit</InputLabel>
-                      <Select
-                        value='50000'
-                        label='Transaction Limit'
-                      >
-                        <MenuItem value='10000'>₹10,000</MenuItem>
-                        <MenuItem value='25000'>₹25,000</MenuItem>
-                        <MenuItem value='50000'>₹50,000</MenuItem>
-                        <MenuItem value='100000'>₹1,00,000</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button variant='contained' startIcon={<Icon icon='mdi:content-save' />}>
-                      Save Settings
-                    </Button>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          )}
 
           {selectedTab === 'support' && (
             <Card>
@@ -438,24 +486,7 @@ const Wallet = () => {
                   Support & Help
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Card variant='outlined'>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <Icon icon='mdi:chat' color={theme.palette.primary.main} />
-                          <Typography variant='h6' sx={{ ml: 1 }}>
-                            Live Chat
-                          </Typography>
-                        </Box>
-                        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-                          Get instant help from our support team
-                        </Typography>
-                        <Button variant='contained' startIcon={<Icon icon='mdi:message' />}>
-                          Start Chat
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+
                   <Grid item xs={12} md={6}>
                     <Card variant='outlined'>
                       <CardContent>
@@ -517,22 +548,9 @@ const Wallet = () => {
             onChange={(e) => setAmount(e.target.value)}
             sx={{ mb: 2, mt: 1 }}
             InputProps={{
-              startAdornment: <Typography sx={{ mr: 1 }}>₹</Typography>
+              startAdornment: <Typography sx={{ mr: 1 }}>RS: </Typography>
             }}
           />
-          <FormControl fullWidth>
-            <InputLabel>Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              label='Payment Method'
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value='upi'>UPI</MenuItem>
-              <MenuItem value='card'>Credit/Debit Card</MenuItem>
-              <MenuItem value='netbanking'>Net Banking</MenuItem>
-              <MenuItem value='wallet'>Digital Wallet</MenuItem>
-            </Select>
-          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowAddMoney(false)}>Cancel</Button>
@@ -544,24 +562,111 @@ const Wallet = () => {
       <Dialog open={showWithdraw} onClose={() => setShowWithdraw(false)} maxWidth='sm' fullWidth>
         <DialogTitle>Withdraw Money</DialogTitle>
         <DialogContent>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, fontWeight: 600 }}>
+              Select Bank Account
+            </Typography>
+            <FormControl fullWidth>
+              <Select
+                value={selectedBank}
+                onChange={(e) => setSelectedBank(e.target.value)}
+                displayEmpty
+                sx={{ minHeight: 50 }}
+              >
+                <MenuItem value="">
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28 }}>
+                      <Icon icon='mdi:bank' fontSize={18} />
+                    </Avatar>
+                    <Typography>Select your bank account</Typography>
+                  </Stack>
+                </MenuItem>
+                <MenuItem value="mcb">
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Avatar sx={{ bgcolor: 'success.main', width: 28, height: 28 }}>
+                      <Icon icon='mdi:bank' fontSize={18} />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {mockMerchant?.bankAccountDetails?.bankName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {maskAccount(mockMerchant?.bankAccountDetails?.accountNumber)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
           <TextField
             fullWidth
             label='Amount'
             type='number'
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            sx={{ mb: 2, mt: 1 }}
+            sx={{ mb: 2 }}
             InputProps={{
-              startAdornment: <Typography sx={{ mr: 1 }}>₹</Typography>
+              startAdornment: <Typography sx={{ mr: 1 }}>RS: </Typography>
             }}
           />
           <Alert severity='info' sx={{ mb: 2 }}>
-            Minimum withdrawal amount: ₹100
+            Minimum withdrawal amount: RS: 500
           </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowWithdraw(false)}>Cancel</Button>
-          <Button onClick={handleWithdraw} variant='contained'>Withdraw</Button>
+          <Button
+            onClick={() => {
+              setShowWithdraw(false)
+              openPincodeDialog('withdraw')
+            }}
+            variant='contained'
+            disabled={!selectedBank || !amount}
+          >
+            Withdraw
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* PIN Code Dialog */}
+      <Dialog
+        open={showPincodeDialog}
+        onClose={() => {
+          setShowPincodeDialog(false)
+          setPincodeAction(null)
+          setPincodeError('')
+        }}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>
+          {pincodeAction === 'setup' ? 'Set Transaction PIN' : 'Verify PIN'}
+        </DialogTitle>
+        <DialogContent sx={{ py: 4 }}>
+          <PincodeInput
+            title={pincodeAction === 'setup' ? 'Create 4-digit PIN' : 'Enter your PIN'}
+            subtitle={pincodeAction === 'setup'
+              ? 'This PIN will be required for all wallet transactions'
+              : 'Enter your 4-digit PIN to continue'
+            }
+            onComplete={handlePincodeComplete}
+            onError={handlePincodeError}
+            error={pincodeError}
+            autoFocus={true}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowPincodeDialog(false)
+              setPincodeAction(null)
+              setPincodeError('')
+            }}
+          >
+            Cancel
+          </Button>
         </DialogActions>
       </Dialog>
 

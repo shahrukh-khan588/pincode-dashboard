@@ -3,7 +3,7 @@ import axios from 'axios'
 // Create axios instance with base configuration
 // Using a completely separate instance to avoid mock adapter interference
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080', // Update this with your actual API base URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', // Backend runs on port 3000
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -27,12 +27,18 @@ axiosInstance.interceptors.request.use(
       }
     }
 
-    console.log('Axios request:', config.method?.toUpperCase(), config.url)
+    console.log('🚀 Axios Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      headers: config.headers,
+      data: config.data
+    })
 
     return config
   },
   (error) => {
-    console.error('Axios request error:', error)
+    console.error('❌ Axios request error:', error)
 
     return Promise.reject(error)
   }

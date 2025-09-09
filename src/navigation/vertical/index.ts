@@ -44,20 +44,22 @@ const navigation = (): VerticalNavItemsType => {
           title: 'Transactions',
           icon: 'mdi:bank-transfer',
           path: '/pages/user-profile/transactions/'
-        },
-        {
-          title: 'Payout Requests',
-          icon: 'mdi:cash-sync',
-          path: '/pages/user-profile/requests/'
         }
       ]
+    },
+    {
+      auth: true,
+      accessTo: ['merchant'],
+      title: 'Payout Requests',
+      icon: 'mdi:cash-sync',
+      path: '/payout-requests'
     },
 
     // admin can access this
     {
       badgeContent: '10',
       badgeColor: 'success',
-      title: 'Payout Requests',
+      title: 'Admin Payout Requests',
       icon: 'mdi:cash-sync',
       path: '/pages/payout/payoutlist',
       auth: true,

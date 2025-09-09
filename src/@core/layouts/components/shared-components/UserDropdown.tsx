@@ -19,6 +19,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Context
 import { useAuth } from 'src/hooks/useAuth'
+import { MerchantDataType, UserDataType } from 'src/context/types'
 
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
@@ -45,7 +46,7 @@ const UserDropdown = (props: Props) => {
 
   // ** Hooks
   const router = useRouter()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
 
   // ** Vars
   const { direction } = settings
@@ -81,6 +82,45 @@ const UserDropdown = (props: Props) => {
     handleDropdownClose()
   }
 
+  // ** Helper functions to get user info
+  const getUserDisplayName = () => {
+    if (!user) return 'Guest'
+
+    if ((user as MerchantDataType).merchantId) {
+      const merchant = user as MerchantDataType
+
+      return merchant.businessName || `${merchant.firstName || ''} ${merchant.lastName || ''}`.trim() || 'Merchant'
+    } else {
+      const adminUser = user as UserDataType
+
+      return adminUser.fullName || adminUser.username || 'Admin'
+    }
+  }
+
+  const getUserRole = () => {
+    if (!user) return 'Guest'
+
+    if ((user as MerchantDataType).merchantId) {
+      const merchant = user as MerchantDataType
+
+      return merchant.verificationStatus === 'verified' ? 'Verified Merchant' : 'Merchant'
+    } else {
+      return 'Admin'
+    }
+  }
+
+  const getUserAvatar = () => {
+    if (!user) return '/images/avatars/1.png'
+
+    if ((user as MerchantDataType).merchantId) {
+      return '/images/avatars/2.png' // Merchant avatar
+    } else {
+      return (user as UserDataType).avatar || '/images/avatars/1.png'
+    }
+  }
+
+  const isMerchant = user && (user as MerchantDataType).merchantId
+
   return (
     <Fragment>
       <Badge
@@ -94,10 +134,10 @@ const UserDropdown = (props: Props) => {
         }}
       >
         <Avatar
-          alt='John Doe'
+          alt={getUserDisplayName()}
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={getUserAvatar()}
         />
       </Badge>
       <Menu
@@ -118,54 +158,33 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt={getUserDisplayName()} src={getUserAvatar()} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{getUserDisplayName()}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {getUserRole()}
               </Typography>
             </Box>
           </Box>
         </Box>
-        <Divider sx={{ mt: '0 !important' }} />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/user-profile/profile')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:account-outline' />
-            Profile
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/email')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:email-outline' />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/apps/chat')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:message-outline' />
-            Chat
-          </Box>
-        </MenuItem>
-        <Divider />
+
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/account-settings/account')}>
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
             Settings
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/pricing')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:currency-usd' />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/faq')}>
-          <Box sx={styles}>
-            <Icon icon='mdi:help-circle-outline' />
-            FAQ
-          </Box>
-        </MenuItem>
+        <Divider />
+
+        {!isMerchant && (
+          <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/pricing')}>
+            <Box sx={styles}>
+              <Icon icon='mdi:currency-usd' />
+              Pricing
+            </Box>
+          </MenuItem>
+        )}
         <Divider />
         <MenuItem
           onClick={handleLogout}

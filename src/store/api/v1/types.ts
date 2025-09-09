@@ -90,3 +90,42 @@ export interface RegisterRequest {
     iban: string;
   };
 }
+
+// Payout Request types
+export interface PayoutRequest {
+  amount: number;
+  bankAccountId: string;
+  transactionPin: string;
+  description?: string;
+}
+
+export interface PayoutRequestResponse {
+  id: string;
+  merchantId: string;
+  amount: number;
+  bankAccountDetails: {
+    accountNumber: string;
+    accountTitle: string;
+    bankName: string;
+    branchCode: string;
+    iban: string;
+  };
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  description?: string;
+  processingFee: number;
+  netAmount: number;
+  estimatedProcessingTime: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  failureReason?: string;
+}
+
+export interface PayoutRequestError {
+  message: string;
+  code: string;
+  details?: {
+    field?: string;
+    value?: any;
+  };
+}

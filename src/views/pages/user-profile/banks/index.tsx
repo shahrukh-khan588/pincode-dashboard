@@ -66,7 +66,7 @@ const Teams = ({ data }: { data: MerchantDataType }) => {
     {
       id: 'acc-1',
       bankName: merchant?.bankAccountDetails?.bankName || '',
-      accountNumber: merchant?.bankAccountDetails.accountNumber,
+      accountNumber: merchant?.bankAccountDetails?.accountNumber || "",
       accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
       iban: merchant?.bankAccountDetails?.iban || '',
       branchCode: merchant?.bankAccountDetails?.branchCode || ''
@@ -78,21 +78,12 @@ const Teams = ({ data }: { data: MerchantDataType }) => {
       accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
       iban: 'PK36HABB0001234567890011223',
       branchCode: '0123'
-    },
-    {
-      id: 'acc-3',
-      bankName: 'Allied Bank Limited',
-      accountNumber: '7788990011223344',
-      accountTitle: merchant.bankAccountDetails.accountTitle,
-      iban: 'PK72ABPA0009876543210011223',
-      branchCode: '0451'
     }
   ]
 
   const recentBankAccounts: Array<{ id: string; bankName: string; accountNumber: string; accountTitle: string; lastUsed: string; amount: number }> = [
     { id: 'r-1', bankName: bankAccounts[0].bankName, accountNumber: bankAccounts[0].accountNumber, accountTitle: bankAccounts[0].accountTitle, lastUsed: '2025-08-16', amount: 25000 },
     { id: 'r-2', bankName: bankAccounts[1].bankName, accountNumber: bankAccounts[1].accountNumber, accountTitle: bankAccounts[1].accountTitle, lastUsed: '2025-08-12', amount: 12000 },
-    { id: 'r-3', bankName: bankAccounts[2].bankName, accountNumber: bankAccounts[2].accountNumber, accountTitle: bankAccounts[2].accountTitle, lastUsed: '2025-08-09', amount: 56000 }
   ]
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(value)
