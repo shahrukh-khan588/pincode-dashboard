@@ -70,20 +70,13 @@ const Teams = ({ data }: { data: MerchantDataType }) => {
       accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
       iban: merchant?.bankAccountDetails?.iban || '',
       branchCode: merchant?.bankAccountDetails?.branchCode || ''
-    },
-    {
-      id: 'acc-2',
-      bankName: 'Habib Bank Limited',
-      accountNumber: '0011223344556677',
-      accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
-      iban: 'PK36HABB0001234567890011223',
-      branchCode: '0123'
     }
   ]
 
   const recentBankAccounts: Array<{ id: string; bankName: string; accountNumber: string; accountTitle: string; lastUsed: string; amount: number }> = [
-    { id: 'r-1', bankName: bankAccounts[0].bankName, accountNumber: bankAccounts[0].accountNumber, accountTitle: bankAccounts[0].accountTitle, lastUsed: '2025-08-16', amount: 25000 },
-    { id: 'r-2', bankName: bankAccounts[1].bankName, accountNumber: bankAccounts[1].accountNumber, accountTitle: bankAccounts[1].accountTitle, lastUsed: '2025-08-12', amount: 12000 },
+    { id: 'r-1', bankName: bankAccounts[0].bankName, accountNumber: bankAccounts[0].accountNumber, accountTitle: bankAccounts[0].accountTitle, lastUsed: '2025-08-16', amount: 0 },
+
+    // { id: 'r-2', bankName: bankAccounts[1].bankName, accountNumber: bankAccounts[1].accountNumber, accountTitle: bankAccounts[1].accountTitle, lastUsed: '2025-08-12', amount: 12000 },
   ]
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(value)

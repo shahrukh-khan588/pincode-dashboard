@@ -76,28 +76,12 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   const bankAccounts = [
     {
       id: 'mcb',
-      name: merchant?.bankAccountDetails?.bankName || 'MCB Bank Limited',
-      accountNumber: merchant?.bankAccountDetails?.accountNumber || '0987654321098',
-      accountTitle: merchant?.bankAccountDetails?.accountTitle || 'Business Account',
-      iban: merchant?.bankAccountDetails?.iban || 'PK24MUCB0004560987654321098',
+      name: merchant?.bankAccountDetails?.bankName || '',
+      accountNumber: merchant?.bankAccountDetails?.accountNumber,
+      accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
+      iban: merchant?.bankAccountDetails?.iban || '',
       color: 'success.main'
     },
-    {
-      id: 'hbl',
-      name: 'HBL Bank',
-      accountNumber: '1234567890123',
-      accountTitle: 'Business Account',
-      iban: 'PK24HBL0001231234567890123',
-      color: 'primary.main'
-    },
-    {
-      id: 'ubl',
-      name: 'UBL Bank',
-      accountNumber: '9876543210987',
-      accountTitle: 'Business Account',
-      iban: 'PK24UBL0009879876543210987',
-      color: 'warning.main'
-    }
   ];
 
   const { requestPayout, isSubmitting, validationErrors, clearValidationErrors } = usePayout({

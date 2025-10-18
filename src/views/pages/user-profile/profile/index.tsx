@@ -1,17 +1,20 @@
 // ** React
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 // ** MUI Components
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
+
+// import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
-import Box from '@mui/material/Box'
-import Stack from '@mui/material/Stack'
+
+// import Box from '@mui/material/Box'
+// import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
-import Avatar from '@mui/material/Avatar'
+
+// import Avatar from '@mui/material/Avatar'
 
 // ** Store/Context
 import { useAuth } from 'src/hooks/useAuth'
@@ -65,7 +68,8 @@ const formatCurrency = (value: number) =>
 
 const ProfileTab = ({ data }: { data: any }) => {
   const { user } = useAuth()
-  const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
+
+  // const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
 
   // Touch incoming prop to avoid unused-var while this tab uses merchant UI
   void data
@@ -77,7 +81,7 @@ const ProfileTab = ({ data }: { data: any }) => {
       {/* Left column: Account card + Quick transfer */}
 
       {/* Right column: Summary, yearly cards, chart, invite */}
-      <Grid item lg={8} md={7} xs={12}>
+      <Grid item lg={12} md={12} xs={12}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Card>
@@ -120,7 +124,7 @@ const ProfileTab = ({ data }: { data: any }) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <Card onClick={() => setYearMode('income')} sx={{ cursor: 'pointer', border: theme => yearMode === 'income' ? `2px solid ${theme.palette.success.main}` : undefined }}>
               <CardContent>
                 <Stack direction='row' spacing={2} alignItems='center'>
@@ -149,7 +153,7 @@ const ProfileTab = ({ data }: { data: any }) => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Grid>
     </Grid>

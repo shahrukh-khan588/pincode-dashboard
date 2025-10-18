@@ -5,6 +5,7 @@ import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
+import Skeleton from '@mui/material/Skeleton'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -23,30 +24,53 @@ interface DataType {
   color: ThemeColor
 }
 
-const salesData: DataType[] = [
+interface CrmTransactionsProps {
+  loading?: boolean
+}
+
+const bankingData: DataType[] = [
   {
-    stats: '245k',
-    title: 'Sales',
+    stats: 'Rs: ....',
+    title: 'Today\'s Transactions',
     color: 'primary',
-    icon: 'mdi:trending-up'
+    icon: 'mdi:bank-transfer'
   },
   {
-    stats: '12.5k',
+    stats: 'Rs: ....',
     color: 'success',
-    title: 'Customers',
-    icon: 'mdi:account-outline'
+    title: 'Total Deposits',
+    icon: 'mdi:arrow-down-bold'
   },
   {
-    stats: '1.54k',
+    stats: 'Rs: ....',
     color: 'warning',
-    title: 'Products',
-    icon: 'mdi:cellphone-link'
-  }
+    title: 'Total Withdrawals',
+    icon: 'mdi:arrow-up-bold'
+  },
+  {
+    stats: 'Rs: ....',
+    color: 'info',
+    title: 'Net Balance',
+    icon: 'mdi:account-balance'
+  },
+
+  // {
+  //   stats: 'Rs: ....',
+  //   color: 'secondary',
+  //   title: 'Active Accounts',
+  //   icon: 'mdi:account-group'
+  // },
+  // {
+  //   stats: 'Rs: ....',
+  //   color: 'error',
+  //   title: 'Pending Loans',
+  //   icon: 'mdi:hand-coin'
+  // }
 ]
 
 const renderStats = () => {
-  return salesData.map((item: DataType, index: number) => (
-    <Grid item xs={12} sm={4} key={index}>
+  return bankingData.map((item: DataType, index: number) => (
+    <Grid item xs={12} sm={6} md={3} key={index}>
       <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
         <CustomAvatar variant='rounded' color={item.color} sx={{ mr: 3, boxShadow: 3, width: 44, height: 44 }}>
           <Icon icon={item.icon} fontSize='1.75rem' />
@@ -60,23 +84,37 @@ const renderStats = () => {
   ))
 }
 
-const CrmTransactions = () => {
+const renderSkeletonStats = () => {
+  return Array.from({ length: 4 }).map((_, index) => (
+    <Grid item xs={12} sm={6} md={3} key={index}>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Skeleton variant='rounded' width={44} height={44} sx={{ mr: 3 }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <Skeleton variant='text' width={120} height={20} sx={{ mb: 1 }} />
+          <Skeleton variant='text' width={80} height={24} />
+        </Box>
+      </Box>
+    </Grid>
+  ))
+}
+
+const CrmTransactions = ({ loading = false }: CrmTransactionsProps) => {
   return (
     <Card>
       <CardHeader
-        title='Transactions'
+        title='Banking Overview'
         action={
           <OptionsMenu
-            options={['Refresh', 'Share', 'Update']}
+            options={['Refresh']}
             iconButtonProps={{ size: 'small', className: 'card-more-options', sx: { color: 'text.secondary' } }}
           />
         }
         subheader={
           <Typography variant='body2'>
             <Box component='span' sx={{ fontWeight: 600, color: 'text.primary' }}>
-              Total 48.5% growth
+              Banking Performance
             </Box>{' '}
-            😎 this month
+            📊 this month
           </Typography>
         }
         titleTypographyProps={{
@@ -89,7 +127,7 @@ const CrmTransactions = () => {
       />
       <CardContent sx={{ pt: theme => `${theme.spacing(0.75)} !important` }}>
         <Grid container spacing={[5, 0]}>
-          {renderStats()}
+          {loading ? renderSkeletonStats() : renderStats()}
         </Grid>
       </CardContent>
     </Card>

@@ -56,43 +56,7 @@ const TransactionItem = styled(ListItem)(({ theme }) => ({
 }))
 
 // ** Mock Data
-const mockTransactions = [
-  {
-    id: 1,
-    type: 'credit',
-    amount: 5000,
-    description: 'Payment received from Customer A',
-    date: '2024-01-15',
-    status: 'completed',
-    icon: 'mdi:arrow-down'
-  },
-  {
-    id: 2,
-    type: 'debit',
-    amount: 1200,
-    description: 'Payment to Supplier B',
-    date: '2024-01-14',
-    status: 'completed',
-    icon: 'mdi:arrow-up'
-  },
-  {
-    id: 3,
-    type: 'credit',
-    amount: 3000,
-    description: 'Refund from cancelled order',
-    date: '2024-01-13',
-    status: 'pending',
-    icon: 'mdi:refresh'
-  },
-  {
-    id: 4,
-    type: 'debit',
-    amount: 800,
-    description: 'Service fee',
-    date: '2024-01-12',
-    status: 'completed',
-    icon: 'mdi:currency-usd'
-  }
+const mockTransactions: any = [
 ]
 
 
@@ -444,35 +408,72 @@ const Wallet = () => {
                 <Typography variant='h6' sx={{ mb: 3 }}>
                   Recent Transactions
                 </Typography>
-                {mockTransactions.map((transaction) => (
-                  <TransactionItem key={transaction.id}>
-                    <ListItemIcon>
-                      <Avatar sx={{ bgcolor: transaction.type === 'credit' ? 'success.main' : 'error.main' }}>
-                        <Icon icon={transaction.icon} />
-                      </Avatar>
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={transaction.description}
-                      secondary={transaction.date}
-                      sx={{ flex: 1 }}
-                    />
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography
-                        variant='body1'
-                        fontWeight={600}
-                        color={transaction.type === 'credit' ? 'success.main' : 'error.main'}
-                      >
-                        {transaction.type === 'credit' ? '+' : '-'}RS: {transaction.amount.toLocaleString()}
-                      </Typography>
-                      <Chip
-                        label={transaction.status}
-                        size='small'
-                        color={getStatusColor(transaction.status) as any}
-                        sx={{ mt: 0.5 }}
+                {mockTransactions && mockTransactions.length > 0 ? (
+                  mockTransactions.map((transaction: any) => (
+                    <TransactionItem key={transaction.id}>
+                      <ListItemIcon>
+                        <Avatar sx={{ bgcolor: transaction.type === 'credit' ? 'success.main' : 'error.main' }}>
+                          <Icon icon={transaction.icon} />
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={transaction.description}
+                        secondary={transaction.date}
+                        sx={{ flex: 1 }}
                       />
-                    </Box>
-                  </TransactionItem>
-                ))}
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography
+                          variant='body1'
+                          fontWeight={600}
+                          color={transaction.type === 'credit' ? 'success.main' : 'error.main'}
+                        >
+                          {transaction.type === 'credit' ? '+' : '-'}RS: {transaction?.amount?.toLocaleString()}
+                        </Typography>
+                        <Chip
+                          label={transaction.status}
+                          size='small'
+                          color={getStatusColor(transaction.status) as any}
+                          sx={{ mt: 0.5 }}
+                        />
+                      </Box>
+                    </TransactionItem>
+                  ))
+                ) : (
+                  <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 8,
+                    textAlign: 'center'
+                  }}>
+                    <Avatar sx={{
+                      bgcolor: 'grey.100',
+                      width: 80,
+                      height: 80,
+                      mb: 3,
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '2rem',
+                        color: 'grey.400'
+                      }
+                    }}>
+                      <Icon icon='mdi:receipt-outline' />
+                    </Avatar>
+                    <Typography variant='h6' sx={{ mb: 1, color: 'text.secondary' }}>
+                      No transactions yet
+                    </Typography>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 3, maxWidth: 300 }}>
+                      Your transaction history will appear here once you start receiving payments or making transfers.
+                    </Typography>
+                    <Button
+                      variant='outlined'
+                      startIcon={<Icon icon='mdi:bank-transfer' />}
+                      onClick={() => setSelectedTab('transfer')}
+                    >
+                      Make a Transfer
+                    </Button>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           )}
