@@ -100,14 +100,7 @@ const UserProfileHeader = ({ data }: { data: MerchantProfile }) => {
                 <Icon icon='mdi:store-outline' />
                 <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.businessName}</Typography>
               </Box>
-              <Box sx={{ mr: 5, display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon='mdi:email-outline' />
-                <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.email}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1, color: 'text.secondary' } }}>
-                <Icon icon='mdi:phone-outline' />
-                <Typography sx={{ ml: 1, color: 'text.secondary', fontWeight: 600 }}>{data.phoneNumber}</Typography>
-              </Box>
+
             </Box>
           </Box>
           <Button variant='contained' startIcon={<Icon icon='mdi:shield-check-outline' fontSize={20} />}>
