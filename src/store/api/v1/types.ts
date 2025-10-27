@@ -151,3 +151,26 @@ export interface PayoutRequestError {
     value?: any;
   };
 }
+
+// Payment Status Inquiry types
+export interface PaymentStatusInquiryRequest {
+  transactionRef: string;
+}
+
+export interface PaymentStatusInquiryResponse {
+  id: string;
+  transactionRef: string;
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED';
+  merchantId: string;
+  provider: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  failureReason?: string;
+  description?: string;
+  fees?: number;
+  netAmount?: number;
+  metadata: Record<string, any>;
+}

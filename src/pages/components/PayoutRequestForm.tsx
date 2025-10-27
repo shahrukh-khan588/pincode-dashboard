@@ -21,9 +21,11 @@ import Icon from 'src/@core/components/icon';
 import PincodeInput from 'src/@core/components/PincodeInput';
 import usePayout from 'src/hooks/usePayout';
 import { MerchantDataType } from 'src/context/types';
+import { BankType } from 'src/store/api/v1/endpoints/banks';
 
 interface PayoutRequestFormProps {
   merchant: MerchantDataType;
+  bankAccounts?: BankType[];
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -63,6 +65,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
 
 const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   merchant,
+  bankAccounts: propBankAccounts,
   onSuccess,
   onCancel,
 }) => {
@@ -72,17 +75,26 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pinError, setPinError] = useState('');
 
-  // Mock bank accounts for carousel
-  const bankAccounts = [
-    {
-      id: 'mcb',
-      name: merchant?.bankAccountDetails?.bankName || '',
-      accountNumber: merchant?.bankAccountDetails?.accountNumber,
-      accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
-      iban: merchant?.bankAccountDetails?.iban || '',
+  // Use prop bank accounts or fallback to mock data
+  const bankAccounts = propBankAccounts && propBankAccounts.length > 0
+    ? propBankAccounts.map(bank => ({
+      id: bank.id,
+      name: bank.bankName,
+      accountNumber: bank.accountNumber,
+      accountTitle: bank.accountTitle,
+      iban: bank.iban,
       color: 'success.main'
-    },
-  ];
+    }))
+    : [
+      {
+        id: 'mcb',
+        name: merchant?.bankAccountDetails?.bankName || '',
+        accountNumber: merchant?.bankAccountDetails?.accountNumber,
+        accountTitle: merchant?.bankAccountDetails?.accountTitle || '',
+        iban: merchant?.bankAccountDetails?.iban || '',
+        color: 'success.main'
+      },
+    ];
 
   const { requestPayout, isSubmitting, validationErrors, clearValidationErrors } = usePayout({
     onSuccess: () => {

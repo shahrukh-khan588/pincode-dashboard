@@ -123,7 +123,7 @@ const DialogAddBank = ({ open, onClose, onSubmit, isLoading = false }: DialogAdd
                   autoComplete='off'
                   label='Bank Name'
                   onChange={handleInputChange('bankName')}
-                  placeholder='MCB Bank Limited'
+                  placeholder='e.g., Your Bank Name '
                 />
               </Grid>
               <Grid item xs={12}>
@@ -134,7 +134,7 @@ const DialogAddBank = ({ open, onClose, onSubmit, isLoading = false }: DialogAdd
                   autoComplete='off'
                   label='Account Title'
                   onChange={handleInputChange('accountTitle')}
-                  placeholder='Malik Electronics & Mobile Center'
+                  placeholder='e.g., Your Business Name'
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -145,7 +145,7 @@ const DialogAddBank = ({ open, onClose, onSubmit, isLoading = false }: DialogAdd
                   autoComplete='off'
                   label='Account Number'
                   onChange={handleInputChange('accountNumber')}
-                  placeholder='0987654321098'
+                  placeholder='e.g., 1234567890123'
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -156,7 +156,7 @@ const DialogAddBank = ({ open, onClose, onSubmit, isLoading = false }: DialogAdd
                   autoComplete='off'
                   label='Branch Code'
                   onChange={handleInputChange('branchCode')}
-                  placeholder='0456'
+                  placeholder='e.g., 1234'
                 />
               </Grid>
               <Grid item xs={12}>
@@ -169,7 +169,7 @@ const DialogAddBank = ({ open, onClose, onSubmit, isLoading = false }: DialogAdd
                   onChange={handleInputChange('iban')}
                   onFocus={() => setIsPreviewFlipped(true)}
                   onBlur={() => setIsPreviewFlipped(false)}
-                  placeholder='PK24MUCB0004560987654321098'
+                  placeholder='e.g., PK24MUCB1234567890123456'
                 />
               </Grid>
             </Grid>

@@ -19,6 +19,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Data Grid Imports
 import { DataGrid } from '@mui/x-data-grid'
+import { useGetMerchantProfileQuery } from 'src/store/api/v1/endpoints/merchant'
 
 // ** Custom Components
 import CustomAvatar from 'src/@core/components/mui/avatar'
@@ -40,19 +41,6 @@ interface MerchantDetail {
   updatedAt: string
 }
 
-// ** Mock data - replace with actual API call
-const mockMerchantData: MerchantDetail = {
-  id: "68af3dcee56bae87dadd7938",
-  merchantId: "MERCH_1756315086400_v124239ld",
-  email: "malik.electronics@gmail.com",
-  businessName: "Malik Electronics & Mobile Center",
-  verificationStatus: "pending",
-  firstName: "Muhammad",
-  lastName: "Malik",
-  phoneNumber: "+92-51-5551234",
-  createdAt: "2025-08-27T17:18:06.404Z",
-  updatedAt: "2025-09-04T20:20:37.140Z"
-}
 
 // ** Status color mapping
 const statusColorMap = {
@@ -127,6 +115,7 @@ const PayoutRequestsTable = () => {
 
 function MerchantDetail() {
   const router = useRouter()
+  const { data: merchantProfile } = useGetMerchantProfileQuery()
 
 
   const handleBack = () => {
@@ -171,13 +160,13 @@ function MerchantDetail() {
                             borderColor: 'primary.main'
                           }}
                         >
-                          {getInitials(mockMerchantData.businessName)}
+                          {getInitials(merchantProfile?.businessName || '')}
                         </CustomAvatar>
                         <Typography variant='h5' sx={{ fontWeight: 700, mb: 1 }}>
-                          {mockMerchantData.businessName}
+                          {merchantProfile?.businessName}
                         </Typography>
                         <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
-                          {mockMerchantData.firstName} {mockMerchantData.lastName}
+                          {merchantProfile?.firstName} {merchantProfile?.lastName}
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                           <Chip
@@ -189,7 +178,7 @@ function MerchantDetail() {
                           />
                           <Chip
                             icon={<Icon icon='mdi:calendar' />}
-                            label={new Date(mockMerchantData.createdAt).getFullYear()}
+                            label={merchantProfile?.createdAt ? new Date(merchantProfile.createdAt).getFullYear() : 'N/A'}
                             color='info'
                             variant='outlined'
                             size='small'
@@ -211,7 +200,7 @@ function MerchantDetail() {
                               Merchant ID
                             </Typography>
                             <Typography variant='body2' sx={{ fontWeight: 500, fontFamily: 'monospace' }}>
-                              {mockMerchantData.merchantId}
+                              {merchantProfile?.merchantId}
                             </Typography>
                           </Box>
                         </Box>
@@ -224,7 +213,7 @@ function MerchantDetail() {
                               Email Address
                             </Typography>
                             <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                              {mockMerchantData.email}
+                              {merchantProfile?.email}
                             </Typography>
                           </Box>
                         </Box>
@@ -237,7 +226,7 @@ function MerchantDetail() {
                               Phone Number
                             </Typography>
                             <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                              {mockMerchantData.phoneNumber}
+                              {merchantProfile?.phoneNumber}
                             </Typography>
                           </Box>
                         </Box>
@@ -257,8 +246,8 @@ function MerchantDetail() {
                               Verification Status
                             </Typography>
                             <Chip
-                              label={mockMerchantData.verificationStatus}
-                              color={statusColorMap[mockMerchantData.verificationStatus]}
+                              label={merchantProfile?.verificationStatus}
+                              color={statusColorMap[merchantProfile?.verificationStatus as keyof typeof statusColorMap]}
                               size='small'
                               variant='filled'
                             />
@@ -268,18 +257,7 @@ function MerchantDetail() {
                           <Box sx={{ mt: 0.5, color: 'text.secondary' }}>
                             <Icon icon='mdi:calendar-plus' fontSize={20} />
                           </Box>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                              Member Since
-                            </Typography>
-                            <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                              {new Date(mockMerchantData.createdAt).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </Typography>
-                          </Box>
+
                         </Box>
                         {/* <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                           <Box sx={{ mt: 0.5, color: 'text.secondary' }}>

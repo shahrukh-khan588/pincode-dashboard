@@ -11,9 +11,14 @@ import TextField from '@mui/material/TextField'
 import CardContent from '@mui/material/CardContent'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
+import Alert from '@mui/material/Alert'
+import Chip from '@mui/material/Chip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** API Imports
+import { useCheckPaymentStatusQuery } from 'src/store/api/v1/endpoints/payout'
 
 interface CheckTransactionDrawerProps {
   open: boolean
@@ -32,46 +37,59 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
   const { open, toggle } = props
 
   const [referenceId, setReferenceId] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [transactionResult, setTransactionResult] = useState<any>(null)
-  const [showResult, setShowResult] = useState(false)
+  const [shouldFetch, setShouldFetch] = useState(false)
+
+  // Use the API hook with skip to control when to fetch
+  const {
+    data: transactionResult,
+    isLoading,
+    error,
+    refetch
+  } = useCheckPaymentStatusQuery(
+    { transactionRef: referenceId },
+    { skip: !shouldFetch || !referenceId.trim() }
+  )
+
 
   const handleSubmit = () => {
-    setIsLoading(true)
-
-    // Simulate API call - replace with actual API call
-    setTimeout(() => {
-      // Mock transaction result - replace with actual API response
-      const mockResult = {
-        referenceId: referenceId,
-        status: 'success',
-        amount: 1500.00,
-        currency: 'Rs',
-        requestedFrom: 'John Doe',
-        isCompany: false,
-        timestamp: '2024-01-15T10:30:00Z',
-        description: 'Payment for services',
-        transactionType: 'Credit',
-        fees: 25.00
-      }
-
-      setTransactionResult(mockResult)
-      setShowResult(true)
-      setIsLoading(false)
-    }, 1500)
+    if (referenceId.trim()) {
+      setShouldFetch(true)
+      refetch()
+    }
   }
 
   const handleClose = () => {
     setReferenceId('')
-    setTransactionResult(null)
-    setShowResult(false)
+    setShouldFetch(false)
     toggle()
   }
 
   const handleCheckAnother = () => {
     setReferenceId('')
-    setTransactionResult(null)
-    setShowResult(false)
+    setShouldFetch(false)
+  }
+
+  // Helper function to get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return 'success'
+      case 'FAILED':
+        return 'error'
+      case 'PENDING':
+        return 'warning'
+      case 'PROCESSING':
+        return 'info'
+      case 'CANCELLED':
+        return 'default'
+      default:
+        return 'default'
+    }
+  }
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString()
   }
 
   return (
@@ -148,15 +166,37 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
             </Box>
           )}
 
-          {showResult && transactionResult && (
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {String((error as any).message)}
+            </Alert>
+          )}
+
+          {transactionResult && (
             <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>Transaction Result</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant='body2'><strong>Status:</strong> {transactionResult.status}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant='body2'><strong>Status:</strong></Typography>
+                  <Chip
+                    label={transactionResult.status}
+                    color={getStatusColor(transactionResult.status) as any}
+                    size="small"
+                  />
+                </Box>
                 <Typography variant='body2'><strong>Amount:</strong> {transactionResult.currency} {transactionResult.amount}</Typography>
-                <Typography variant='body2'><strong>From:</strong> {transactionResult.requestedFrom}</Typography>
-                <Typography variant='body2'><strong>Type:</strong> {transactionResult.transactionType}</Typography>
-                <Typography variant='body2'><strong>Fees:</strong> {transactionResult.currency} {transactionResult.fees}</Typography>
+                <Typography variant='body2'><strong>Merchant ID:</strong> {transactionResult.merchantId}</Typography>
+                <Typography variant='body2'><strong>Provider:</strong> {transactionResult.provider || 'N/A'}</Typography>
+                <Typography variant='body2'><strong>Created:</strong> {formatDate(transactionResult.createdAt)}</Typography>
+                {transactionResult.description && (
+                  <Typography variant='body2'><strong>Description:</strong> {transactionResult.description}</Typography>
+                )}
+                {transactionResult.fees && (
+                  <Typography variant='body2'><strong>Fees:</strong> {transactionResult.currency} {transactionResult.fees}</Typography>
+                )}
+                {transactionResult.failureReason && (
+                  <Typography variant='body2'><strong>Failure Reason:</strong> {transactionResult.failureReason}</Typography>
+                )}
               </Box>
               <Button
                 fullWidth

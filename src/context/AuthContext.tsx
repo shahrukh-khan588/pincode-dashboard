@@ -123,13 +123,29 @@ const AuthProvider = ({ children }: Props) => {
       const returnUrl = router.query.returnUrl
 
       // Store user data - handle both userData and direct response formats
-      const userData = response.data.userData || response.data
+      let userData = response.data.userData || response.data
+
+      // For merchants, fetch complete profile data to get phoneNumber, businessAddress, etc.
+      const isMerchant = (params.userType === 'merchant') || !!(userData && (userData as any).merchantId)
+      if (isMerchant && response.data.accessToken) {
+        try {
+          const completeProfile = await fetchMerchantProfile(response.data.accessToken)
+          if (completeProfile) {
+            // Merge login data with complete profile data
+            userData = { ...userData, ...completeProfile }
+            console.log('Complete merchant profile fetched:', completeProfile)
+          }
+        } catch (error) {
+          console.error('Failed to fetch complete merchant profile:', error)
+
+          // Continue with login data if profile fetch fails
+        }
+      }
+
       setUserState({ ...userData })
       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
 
       // Redirect merchants based on their approval status
-      const isMerchant = (params.userType === 'merchant') || !!(userData && (userData as any).merchantId)
-
       let defaultPath = '/'
       if (isMerchant) {
         // Check merchant verification status

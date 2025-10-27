@@ -36,6 +36,7 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
+import { useGetAllBanksQuery } from 'src/store/api/v1/endpoints/banks'
 
 // ** Types
 import type { MerchantDataType } from 'src/context/types'
@@ -74,6 +75,11 @@ const Wallet = () => {
   const [userPincode, setUserPincode] = useState<string | null>(null)
   const [pincodeError, setPincodeError] = useState('')
 
+  const { user } = useAuth()
+  const merchant = user as MerchantDataType
+
+  console.log(merchant, '============>merchant')
+
   // ** Hooks
   const theme = useTheme()
   const router = useRouter()
@@ -82,7 +88,10 @@ const Wallet = () => {
   // ** Fetch wallet details from API
   const { data: walletDetails, isLoading: isWalletLoading, error: walletError } = useGetWalletDetailsQuery()
 
-  // ** Debug: Log wallet data
+  // ** Fetch bank accounts from API
+  const { data: bankAccounts, isLoading: isBanksLoading, error: banksError } = useGetAllBanksQuery({})
+
+  // ** Debug: Log wallet and bank data
   React.useEffect(() => {
     if (walletDetails) {
       console.log('💰 Wallet Details:', walletDetails)
@@ -90,19 +99,26 @@ const Wallet = () => {
     if (walletError) {
       console.error('❌ Wallet Error:', walletError)
     }
-  }, [walletDetails, walletError])
+    if (bankAccounts) {
+      console.log('🏦 Bank Accounts:', bankAccounts)
+    }
+    if (banksError) {
+      console.error('❌ Banks Error:', banksError)
+    }
+  }, [walletDetails, walletError, bankAccounts, banksError])
 
-  // ** Mock merchant data for transfer functionality (keeping for bank details)
+
+  // ** Mock merchant data for transfer functionality (using dynamic bank details)
   const mockMerchant: MerchantDataType = {
-    merchantId: 'MERCH_1755529411388_mr61qtivk',
-    email: 'malik.electronics@gmail.com',
-    firstName: 'Muhammad',
-    lastName: 'Malik',
-    businessName: 'Malik Electronics & Mobile Center',
-    businessAddress: 'Shop No. 15, Main Bazaar, Saddar, Rawalpindi, Punjab, Pakistan',
-    taxId: 'NTN-9876543-2',
-    phoneNumber: '+92-51-5551234',
-    verificationStatus: 'pending',
+    merchantId: merchant?.merchantId || '',
+    email: merchant?.email || '',
+    firstName: merchant?.firstName || '',
+    lastName: merchant?.lastName || '',
+    businessName: merchant?.businessName || '',
+    businessAddress: merchant?.businessAddress || '',
+    taxId: merchant?.taxId || '',
+    phoneNumber: merchant?.phoneNumber || '',
+    verificationStatus: merchant?.verificationStatus || 'pending',
     isActive: true,
     walletBalance: {
       availableBalance: walletDetails?.availableBalance || 0,
@@ -111,11 +127,11 @@ const Wallet = () => {
       lastUpdated: walletDetails?.lastUpdated || new Date().toISOString()
     },
     bankAccountDetails: {
-      accountNumber: '0987654321098',
-      accountTitle: 'Malik Electronics & Mobile Center',
-      bankName: 'MCB Bank Limited',
-      branchCode: '0456',
-      iban: 'PK24MUCB0004560987654321098'
+      accountNumber: bankAccounts?.[0]?.accountNumber || '',
+      accountTitle: bankAccounts?.[0]?.accountTitle || '',
+      bankName: bankAccounts?.[0]?.bankName || '',
+      branchCode: bankAccounts?.[0]?.branchCode || '',
+      iban: bankAccounts?.[0]?.iban || ''
     },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -215,9 +231,12 @@ const Wallet = () => {
 
   const executeWithdraw = () => {
     if (amount && selectedBank) {
+      const selectedBankAccount = bankAccounts?.find(bank => bank.id === selectedBank)
+      const bankName = selectedBankAccount?.bankName || 'your bank account'
+
       setSnackbar({
         open: true,
-        message: `Withdrawal request of ${formatCurrency(parseInt(amount))} to ${mockMerchant?.bankAccountDetails?.bankName} submitted`,
+        message: `Withdrawal request of ${formatCurrency(parseInt(amount))} to ${bankName} submitted`,
         severity: 'success'
       })
       setShowWithdraw(false)
@@ -374,6 +393,7 @@ const Wallet = () => {
               ) : walletDetails ? (
                 <PayoutRequestForm
                   merchant={mockMerchant}
+                  bankAccounts={bankAccounts}
                   onSuccess={() => {
                     setSnackbar({
                       open: true,
@@ -582,21 +602,37 @@ const Wallet = () => {
                     <Typography>Select your bank account</Typography>
                   </Stack>
                 </MenuItem>
-                <MenuItem value="mcb">
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'success.main', width: 28, height: 28 }}>
-                      <Icon icon='mdi:bank' fontSize={18} />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {mockMerchant?.bankAccountDetails?.bankName}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {maskAccount(mockMerchant?.bankAccountDetails?.accountNumber)}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </MenuItem>
+                {isBanksLoading ? (
+                  <MenuItem disabled>
+                    <Typography>Loading bank accounts...</Typography>
+                  </MenuItem>
+                ) : banksError ? (
+                  <MenuItem disabled>
+                    <Typography color="error">Failed to load bank accounts</Typography>
+                  </MenuItem>
+                ) : bankAccounts && bankAccounts.length > 0 ? (
+                  bankAccounts.map((bank, index) => (
+                    <MenuItem key={index} value={bank.id}>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar sx={{ bgcolor: 'success.main', width: 28, height: 28 }}>
+                          <Icon icon='mdi:bank' fontSize={18} />
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {bank.bankName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {maskAccount(bank.accountNumber)} • {bank.accountTitle}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    <Typography>No bank accounts found</Typography>
+                  </MenuItem>
+                )}
               </Select>
             </FormControl>
           </Box>

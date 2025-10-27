@@ -1,5 +1,5 @@
 import { api } from "..";
-import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse } from "../types";
+import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse, PaymentStatusInquiryRequest, PaymentStatusInquiryResponse } from "../types";
 
 export const payoutApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -62,6 +62,18 @@ export const payoutApi = api.injectEndpoints({
         },
       },
     }),
+
+    // Check payment status by transaction reference
+    checkPaymentStatus: builder.query<PaymentStatusInquiryResponse, PaymentStatusInquiryRequest>({
+      query: ({ transactionRef }) => ({
+        url: "/payments/status-inquiry",
+        method: "POST",
+        body: { transactionRef },
+      }),
+
+      // Don't cache this query as status can change frequently
+      keepUnusedDataFor: 0,
+    }),
   }),
 });
 
@@ -70,4 +82,5 @@ export const {
   useGetPayoutRequestsQuery,
   useGetPayoutRequestQuery,
   useCancelPayoutRequestMutation,
+  useCheckPaymentStatusQuery,
 } = payoutApi;

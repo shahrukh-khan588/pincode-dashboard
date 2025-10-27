@@ -51,33 +51,6 @@ const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 
 //
 
-const mockMerchant: MerchantDataType = {
-  merchantId: 'MERCH_1755529411388_mr61qtivk',
-  email: 'malik.electronics@gmail.com',
-  firstName: 'Muhammad',
-  lastName: 'Malik',
-  businessName: 'Malik Electronics & Mobile Center',
-  businessAddress: 'Shop No. 15, Main Bazaar, Saddar, Rawalpindi, Punjab, Pakistan',
-  taxId: 'NTN-9876543-2',
-  phoneNumber: '+92-51-5551234',
-  verificationStatus: 'pending',
-  isActive: true,
-  walletBalance: {
-    availableBalance: 0,
-    pendingBalance: 0,
-    totalEarnings: 0,
-    lastUpdated: new Date().toISOString()
-  },
-  bankAccountDetails: {
-    accountNumber: '0987654321098',
-    accountTitle: 'Malik Electronics & Mobile Center',
-    bankName: 'MCB Bank Limited',
-    branchCode: '0456',
-    iban: 'PK24MUCB0004560987654321098'
-  },
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-}
 
 const mockPayouts: Array<{ id: string; date: string; amount: number; status: 'paid' | 'pending' | 'failed'; reference: string; type?: 'credit' | 'debit' }> = [
   { id: 'P001', date: '2025-08-16', amount: 12500, status: 'paid', reference: 'Sale POS #221', type: 'credit' },
@@ -115,7 +88,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
   const { data: walletDetails, isLoading: isWalletLoading, error: walletError } = useGetWalletDetailsQuery()
 
   const merchant = useMemo(() => {
-    const baseMerchant = (user as MerchantDataType | null) || mockMerchant
+    const baseMerchant = (user as MerchantDataType | null)
 
     // Update wallet balance with real API data if available
     if (walletDetails) {
@@ -512,9 +485,9 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1} justifyContent="flex-end">
                   <Icon
-                    icon={merchant.verificationStatus === 'pending' ? 'mdi:clock-outline' : 'mdi:check-circle'}
+                    icon={merchant?.verificationStatus === 'pending' ? 'mdi:clock-outline' : 'mdi:check-circle'}
                     fontSize={16}
-                    color={merchant.verificationStatus === 'pending' ? '#ffa726' : '#66bb6a'}
+                    color={merchant?.verificationStatus === 'pending' ? '#ffa726' : '#66bb6a'}
                   />
                   <Typography
                     sx={{
