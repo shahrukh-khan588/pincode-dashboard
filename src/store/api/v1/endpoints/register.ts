@@ -1,7 +1,6 @@
 import { api } from '..';
 import { RegisterRequest } from '../types';
 
-
 export interface RegisterResponse {
   message?: string;
 }

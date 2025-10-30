@@ -40,11 +40,12 @@ const navigation = (): VerticalNavItemsType => {
           title: 'Bank Details',
           path: '/pages/user-profile/bank-details/'
         },
-        {
-          title: 'Transactions',
-          icon: 'mdi:bank-transfer',
-          path: '/pages/user-profile/transactions/'
-        }
+
+        // {
+        //   title: 'Transactions',
+        //   icon: 'mdi:bank-transfer',
+        //   path: '/pages/user-profile/transactions/'
+        // }
       ]
     },
     {

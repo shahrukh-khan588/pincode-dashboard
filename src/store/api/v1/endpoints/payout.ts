@@ -1,12 +1,12 @@
 import { api } from "..";
-import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse, PaymentStatusInquiryRequest, PaymentStatusInquiryResponse } from "../types";
+import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse, PaymentStatusInquiryRequest, PaymentStatusInquiryResponse, MerchantPayoutRequestsListResponse } from "../types";
 
 export const payoutApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // Create a payout request - requires transaction PIN for security
     createPayoutRequest: builder.mutation<PayoutRequestResponse, PayoutRequest>({
       query: (payoutData) => ({
-        url: "/merchants/me/payout-requests",
+        url: "/merchants/payout-requests",
         method: "POST",
         body: payoutData,
       }),
@@ -27,6 +27,16 @@ export const payoutApi = api.injectEndpoints({
     getPayoutRequests: builder.query<PaymentsListResponse, { page?: number; limit?: number; status?: string }>({
       query: ({ page = 1, limit = 10, status } = {}) => ({
         url: "/merchants/payments",
+        params: { page, limit, ...(status && { status }) },
+      }),
+      providesTags: ["PayoutRequests"],
+    }),
+
+    // Get merchant payout-requests (new endpoint)
+    getMerchantPayoutRequests: builder.query<MerchantPayoutRequestsListResponse, { page?: number; limit?: number; status?: string }>({
+      query: ({ page = 1, limit = 20, status } = {}) => ({
+        url: "/merchants/payout-requests",
+        method: "GET",
         params: { page, limit, ...(status && { status }) },
       }),
       providesTags: ["PayoutRequests"],
@@ -80,6 +90,7 @@ export const payoutApi = api.injectEndpoints({
 export const {
   useCreatePayoutRequestMutation,
   useGetPayoutRequestsQuery,
+  useGetMerchantPayoutRequestsQuery,
   useGetPayoutRequestQuery,
   useCancelPayoutRequestMutation,
   useCheckPaymentStatusQuery,

@@ -13,7 +13,8 @@ import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
-import Button from '@mui/material/Button'
+
+// import Button from '@mui/material/Button'
 import Avatar from '@mui/material/Avatar'
 import Chip from '@mui/material/Chip'
 import Alert from '@mui/material/Alert'
@@ -25,10 +26,10 @@ import Paper from '@mui/material/Paper'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
 
 // ** Hooks
-import { useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
+import { useGetMerchantPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
 
 // ** Types
-import type { PaymentResponse } from 'src/store/api/v1/types'
+import type { MerchantPayoutRequestItem } from 'src/store/api/v1/types'
 
 // ** Icon
 import Icon from 'src/@core/components/icon'
@@ -86,17 +87,17 @@ const getStatusIcon = (status: string) => {
 const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed' | 'failed'>('all')
 
-  // Fetch payout requests
-  const { data: payoutResponse, isLoading, error } = useGetPayoutRequestsQuery({
+  // Fetch payout requests (new endpoint)
+  const { data: payoutResponse, isLoading, error } = useGetMerchantPayoutRequestsQuery({
     page: 1,
     limit: 100
   })
 
   // Extract requests from response
-  const payoutRequests: PaymentResponse[] = payoutResponse?.items || []
+  const payoutRequests: MerchantPayoutRequestItem[] = payoutResponse?.items || []
 
   // Filter requests based on active tab
-  const filteredRequests = payoutRequests.filter((request: PaymentResponse) => {
+  const filteredRequests = payoutRequests.filter((request: MerchantPayoutRequestItem) => {
     if (activeTab === 'all') return true
 
     // Map API status to frontend status
@@ -116,10 +117,10 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
   // Calculate statistics
   const stats = {
     total: payoutRequests.length,
-    pending: payoutRequests.filter((r: PaymentResponse) => r.status === 'PENDING').length,
-    completed: payoutRequests.filter((r: PaymentResponse) => r.status === 'SUCCESS').length,
-    failed: payoutRequests.filter((r: PaymentResponse) => r.status === 'FAILED').length,
-    totalAmount: payoutRequests.reduce((sum: number, r: PaymentResponse) => sum + r.amount, 0)
+    pending: payoutRequests.filter((r: MerchantPayoutRequestItem) => r.status === 'PENDING').length,
+    completed: payoutRequests.filter((r: MerchantPayoutRequestItem) => r.status === 'SUCCESS').length,
+    failed: payoutRequests.filter((r: MerchantPayoutRequestItem) => r.status === 'FAILED').length,
+    totalAmount: payoutRequests.reduce((sum: number, r: MerchantPayoutRequestItem) => sum + r.amount, 0)
   }
 
   const columns: GridColDef[] = [
@@ -146,9 +147,10 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
       )
     },
     {
-      field: 'provider',
-      headerName: 'Provider',
-      flex: 1,
+      field: 'destination',
+      headerName: 'Destination',
+      flex: 1.5,
+      sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={2} alignItems="center">
           <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
@@ -156,23 +158,13 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
           </Avatar>
           <Box>
             <Typography variant="body2" fontWeight={600}>
-              {params.value}
+              {params.value?.bankName || params.value?.type}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Payment Provider
+              {params.value?.accountLast4 ? `•••• ${params.value.accountLast4}` : 'Destination'}
             </Typography>
           </Box>
         </Stack>
-      )
-    },
-    {
-      field: 'transactionRef',
-      headerName: 'Transaction Ref',
-      flex: 1.2,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-          {params.value}
-        </Typography>
       )
     },
     {
@@ -216,13 +208,13 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
               Track and manage your payout requests
             </Typography>
           </Box>
-          <Button
+          {/* <Button
             variant="contained"
             startIcon={<Icon icon='mdi:plus' />}
             onClick={() => window.location.href = '/pages/wallet/my-wallet'}
           >
             New Request
-          </Button>
+          </Button> */}
         </Box>
       </Grid>
 
@@ -342,26 +334,6 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
               <Alert severity="error" sx={{ mb: 3 }}>
                 Failed to load payout requests. Please try again.
               </Alert>
-            ) : filteredRequests.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Icon icon='mdi:bank-out' style={{ fontSize: '48px', color: '#666', marginBottom: '16px' }} />
-                <Typography variant='h6' sx={{ mb: 1 }}>
-                  No payout requests found
-                </Typography>
-                <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
-                  {activeTab === 'all'
-                    ? 'You haven\'t made any payout requests yet.'
-                    : `No ${activeTab} payout requests found.`
-                  }
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<Icon icon='mdi:plus' />}
-                  onClick={() => window.location.href = '/pages/wallet/my-wallet'}
-                >
-                  Create First Request
-                </Button>
-              </Box>
             ) : (
               <div style={{ width: '100%' }}>
                 <DataGrid

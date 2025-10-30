@@ -10,7 +10,6 @@ import Dialog from '@mui/material/Dialog'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 
@@ -377,20 +376,6 @@ const Teams = ({ data }: { data: MerchantDataType }) => {
             </Box>
           </Grid>
         ))}
-
-        <Grid item xs={12}>
-          <Card>
-            <Box sx={{ p: 5 }}>
-              <Typography variant='h6' sx={{ fontSize: '1.1rem', mb: 2 }}>
-                Recent Bank Accounts
-              </Typography>
-              <Divider sx={{ mb: 4 }} />
-              <div style={{ width: '100%' }}>
-                {/* <DataGrid autoHeight rows={banks?.items} columns={recentColumns} rowsPerPageOptions={[5, 10]} pageSize={5} /> */}
-              </div>
-            </Box>
-          </Card>
-        </Grid>
       </Grid>
 
       <DialogAddBank

@@ -117,6 +117,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false)
 
   // ** Hooks
   const auth = useAuth()
@@ -129,7 +130,6 @@ const LoginPage = () => {
 
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -140,22 +140,22 @@ const LoginPage = () => {
   })
 
   const onSubmit = (data: FormData) => {
+    setIsLoading(true)
     const { email, password } = data
     setIsSubmitted(true)
     setErrorMessage('')
 
     // Merchant login with userType set to 'merchant'
-    auth.login({ email, password, rememberMe, userType: 'merchant' }, (err) => {
-      if (err?.response?.status === 401 || err?.response?.status === 400) {
-        setError('email', {
-          type: 'manual',
-          message: 'Email or Password is invalid'
-        })
-        setErrorMessage('Invalid email or password. Please try again.')
-      } else if (err) {
-        setErrorMessage('An error occurred during login. Please try again.')
-      }
-    })
+    const result = auth.login({ email, password, rememberMe, userType: 'merchant' }, (err) => {
+      // Prefer structured error from auth context, fallback to axios shape
+      const serverMessage = err?.error?.message ?? err?.response?.data?.message ?? err?.message
+      const friendly = serverMessage || 'Login failed. Please try again.'
+
+      // Do not attach API errors to the email field; show only the banner
+      setErrorMessage(friendly)
+    }) as unknown as Promise<any>
+
+    result.finally(() => setIsLoading(false))
   }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
@@ -282,8 +282,11 @@ const LoginPage = () => {
                 />
                 <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
               </Box>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
-                Login
+              <Button
+                disabled={isLoading}
+                fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
+                {isLoading ? 'Loading...' : ' Login'}
+
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 2 }}>

@@ -54,6 +54,15 @@ export interface MerchantProfile {
   updatedAt: string; // ISO date string
 }
 
+// Update payload for PATCH /merchants/profile
+export interface UpdateMerchantProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  businessAddress?: string;
+  phoneNumber?: string;
+}
+
 // Admin merchants list types
 export interface AdminMerchantItem {
   id: string;
@@ -114,6 +123,30 @@ export interface PaymentResponse {
 
 export interface PaymentsListResponse {
   items: PaymentResponse[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+// Merchant payout-requests list (new GET /merchants/payout-requests)
+export interface MerchantPayoutDestination {
+  type: 'BANK' | 'WALLET' | string;
+  bankName?: string;
+  accountLast4?: string;
+}
+
+export interface MerchantPayoutRequestItem {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED' | string;
+  createdAt: string;
+  destination: MerchantPayoutDestination;
+}
+
+export interface MerchantPayoutRequestsListResponse {
+  items: MerchantPayoutRequestItem[];
   page: number;
   limit: number;
   total: number;

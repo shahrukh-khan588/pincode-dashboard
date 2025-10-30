@@ -38,6 +38,44 @@ const AuthProvider = ({ children }: Props) => {
   // ** Hooks
   const router = useRouter()
 
+  // ** Session Expiry (24 hours)
+  const SESSION_EXPIRY_KEY = 'sessionExpiry'
+  const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000
+  let logoutTimer: ReturnType<typeof setTimeout> | null = null
+
+  const clearLogoutTimer = () => {
+    if (logoutTimer) {
+      clearTimeout(logoutTimer)
+      logoutTimer = null
+    }
+  }
+
+  const scheduleAutoLogout = () => {
+    if (typeof window === 'undefined') return
+    const expiryStr = window.localStorage.getItem(SESSION_EXPIRY_KEY)
+    if (!expiryStr) return
+    const expiresAt = Number(expiryStr)
+    const now = Date.now()
+    const remaining = Math.max(0, expiresAt - now)
+    clearLogoutTimer()
+    if (remaining === 0) {
+      handleLogout()
+    } else {
+      logoutTimer = setTimeout(() => {
+        handleLogout()
+      }, remaining)
+    }
+  }
+
+  const isSessionExpired = (): boolean => {
+    if (typeof window === 'undefined') return false
+    const expiryStr = window.localStorage.getItem(SESSION_EXPIRY_KEY)
+    if (!expiryStr) return true
+    const expiresAt = Number(expiryStr)
+
+    return Number.isFinite(expiresAt) ? Date.now() >= expiresAt : true
+  }
+
   // ** Function to fetch latest merchant profile data
   const fetchMerchantProfile = async (token: string) => {
     try {
@@ -61,6 +99,18 @@ const AuthProvider = ({ children }: Props) => {
       const storedUserData = window.localStorage.getItem('userData')
 
       if (storedToken && storedUserData) {
+        // Enforce 24h session expiry
+        if (isSessionExpired()) {
+          window.localStorage.removeItem('userData')
+          window.localStorage.removeItem('refreshToken')
+          window.localStorage.removeItem('accessToken')
+          window.localStorage.removeItem(SESSION_EXPIRY_KEY)
+          setUserState(null)
+          setLoading(false)
+          router.replace('/login')
+
+          return
+        }
         try {
           const userData = JSON.parse(storedUserData)
 
@@ -84,11 +134,15 @@ const AuthProvider = ({ children }: Props) => {
           }
 
           setLoading(false)
+
+          // Ensure auto-logout is scheduled
+          scheduleAutoLogout()
         } catch (error) {
           console.error('Error parsing stored user data:', error)
           localStorage.removeItem('userData')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('accessToken')
+          localStorage.removeItem(SESSION_EXPIRY_KEY)
           setUserState(null)
           setLoading(false)
         }
@@ -143,7 +197,13 @@ const AuthProvider = ({ children }: Props) => {
       }
 
       setUserState({ ...userData })
-      params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(userData)) : null
+      if (params.rememberMe) {
+        window.localStorage.setItem('userData', JSON.stringify(userData))
+
+        // Set session expiry to 24 hours from now
+        window.localStorage.setItem(SESSION_EXPIRY_KEY, String(Date.now() + SESSION_MAX_AGE_MS))
+        scheduleAutoLogout()
+      }
 
       // Redirect merchants based on their approval status
       let defaultPath = '/'
@@ -200,6 +260,8 @@ const AuthProvider = ({ children }: Props) => {
     setUserState(null)
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
+    window.localStorage.removeItem(SESSION_EXPIRY_KEY)
+    clearLogoutTimer()
     router.push('/login')
   }
 

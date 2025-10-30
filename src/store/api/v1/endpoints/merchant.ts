@@ -1,5 +1,5 @@
 import { api } from "..";
-import { MerchantProfile } from "../types";
+import { MerchantProfile, UpdateMerchantProfileRequest } from "../types";
 
 export const merchantApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,8 +7,18 @@ export const merchantApi = api.injectEndpoints({
       query: () => ({
         url: "/merchants/profile",
       }),
+      providesTags: ["MerchantProfile"],
+    }),
+
+    updateMerchantProfile: builder.mutation<MerchantProfile, UpdateMerchantProfileRequest>({
+      query: (body) => ({
+        url: "/merchants/profile",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["MerchantProfile"],
     }),
   }),
 });
 
-export const { useGetMerchantProfileQuery } = merchantApi;
+export const { useGetMerchantProfileQuery, useUpdateMerchantProfileMutation } = merchantApi;

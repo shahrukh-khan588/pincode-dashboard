@@ -13,9 +13,6 @@ import Button from '@mui/material/Button'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemIcon from '@mui/material/ListItemIcon'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
@@ -28,7 +25,14 @@ import Select from '@mui/material/Select'
 import Alert from '@mui/material/Alert'
 import Snackbar from '@mui/material/Snackbar'
 import Stack from '@mui/material/Stack'
-import { styled, useTheme } from '@mui/material/styles'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import TableBody from '@mui/material/TableBody'
+import TableContainer from '@mui/material/TableContainer'
+import TablePagination from '@mui/material/TablePagination'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -36,6 +40,7 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
+import { useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
 import { useGetAllBanksQuery } from 'src/store/api/v1/endpoints/banks'
 
 // ** Types
@@ -46,19 +51,8 @@ import CardWelcomeBack from 'src/views/ui/cards/gamification/CardWelcomeBack'
 import PincodeInput from 'src/@core/components/PincodeInput'
 import PayoutRequestForm from '@/pages/components/PayoutRequestForm'
 
-// ** Styled Components
-const TransactionItem = styled(ListItem)(({ theme }) => ({
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: theme.spacing(1),
-  marginBottom: theme.spacing(1),
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover
-  }
-}))
+// ** Styled Components (none for table version)
 
-// ** Mock Data
-const mockTransactions: any = [
-]
 
 
 const Wallet = () => {
@@ -78,7 +72,6 @@ const Wallet = () => {
   const { user } = useAuth()
   const merchant = user as MerchantDataType
 
-  console.log(merchant, '============>merchant')
 
   // ** Hooks
   const theme = useTheme()
@@ -90,6 +83,17 @@ const Wallet = () => {
 
   // ** Fetch bank accounts from API
   const { data: bankAccounts, isLoading: isBanksLoading, error: banksError } = useGetAllBanksQuery({})
+
+  const [txPage, setTxPage] = useState(1)
+  const [txLimit, setTxLimit] = useState(10)
+  const [txStatus, setTxStatus] = useState<string>('all')
+
+  const { data: payouts, isLoading, error } = useGetPayoutRequestsQuery({
+    page: txPage,
+    limit: txLimit,
+    status: txStatus !== 'all' ? txStatus : undefined
+  })
+
 
   // ** Debug: Log wallet and bank data
   React.useEffect(() => {
@@ -248,10 +252,14 @@ const Wallet = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'success':
+      case 'SUCCESS':
         return 'success'
       case 'pending':
+      case 'PENDING':
         return 'warning'
       case 'failed':
+      case 'FAILED':
         return 'error'
       default:
         return 'default'
@@ -425,39 +433,82 @@ const Wallet = () => {
           {selectedTab === 'transactions' && (
             <Card>
               <CardContent>
-                <Typography variant='h6' sx={{ mb: 3 }}>
-                  Recent Transactions
-                </Typography>
-                {mockTransactions && mockTransactions.length > 0 ? (
-                  mockTransactions.map((transaction: any) => (
-                    <TransactionItem key={transaction.id}>
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: transaction.type === 'credit' ? 'success.main' : 'error.main' }}>
-                          <Icon icon={transaction.icon} />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={transaction.description}
-                        secondary={transaction.date}
-                        sx={{ flex: 1 }}
-                      />
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography
-                          variant='body1'
-                          fontWeight={600}
-                          color={transaction.type === 'credit' ? 'success.main' : 'error.main'}
-                        >
-                          {transaction.type === 'credit' ? '+' : '-'}RS: {transaction?.amount?.toLocaleString()}
-                        </Typography>
-                        <Chip
-                          label={transaction.status}
-                          size='small'
-                          color={getStatusColor(transaction.status) as any}
-                          sx={{ mt: 0.5 }}
-                        />
-                      </Box>
-                    </TransactionItem>
-                  ))
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Typography variant='h6'>
+                    Recent Transactions
+                  </Typography>
+                  <TextField
+                    size='small'
+                    select
+                    label='Filter by status'
+                    value={txStatus}
+                    onChange={(e) => { setTxStatus(e.target.value); setTxPage(1) }}
+                    sx={{ minWidth: 200 }}
+                  >
+                    <MenuItem value='all'>All</MenuItem>
+                    <MenuItem value='PENDING'>Pending</MenuItem>
+                    <MenuItem value='SUCCESS'>Success</MenuItem>
+                    <MenuItem value='FAILED'>Failed</MenuItem>
+                  </TextField>
+                </Box>
+                {isLoading ? (
+                  <Typography>Loading transactions...</Typography>
+                ) : error ? (
+                  <Alert severity="error">Failed to load transactions. Please try again.</Alert>
+                ) : payouts && payouts?.items && payouts.items.length > 0 ? (
+                  <>
+                    <TableContainer>
+                      <Table size='small'>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Transaction Ref</TableCell>
+                            <TableCell>Provider</TableCell>
+                            <TableCell align='right'>Amount (PKR)</TableCell>
+                            <TableCell>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {payouts.items.map((transaction: any) => (
+                            <TableRow key={transaction.id} hover>
+                              <TableCell>{new Date(transaction.createdAt).toLocaleString()}</TableCell>
+                              <TableCell>{transaction.transactionRef || transaction.id}</TableCell>
+                              <TableCell>
+                                <Stack direction='row' spacing={1} alignItems='center'>
+                                  <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.light' }}>
+                                    <Icon icon='mdi:bank' width={16} height={16} />
+                                  </Avatar>
+                                  <Typography variant='body2'>{transaction.provider || 'Payment'}</Typography>
+                                </Stack>
+                              </TableCell>
+                              <TableCell align='right'>
+                                <Typography fontWeight={600}>RS: {Number(transaction?.amount || 0).toLocaleString()}</Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={transaction.status}
+                                  size='small'
+                                  color={getStatusColor(transaction.status) as any}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+
+                    <TablePagination
+                      component='div'
+                      count={payouts?.total || 0}
+                      page={(payouts?.page ? payouts.page - 1 : txPage - 1)}
+                      onPageChange={(e, newPage) => setTxPage(newPage + 1)}
+                      rowsPerPage={txLimit}
+                      onRowsPerPageChange={(e) => { setTxLimit(parseInt(e.target.value, 10)); setTxPage(1) }}
+                      rowsPerPageOptions={[10, 25, 50, 100]}
+                      showFirstButton
+                      showLastButton
+                    />
+                  </>
                 ) : (
                   <Box sx={{
                     display: 'flex',
@@ -494,6 +545,8 @@ const Wallet = () => {
                     </Button>
                   </Box>
                 )}
+
+                {/* Removed old pagination controls in favor of TablePagination */}
               </CardContent>
             </Card>
           )}
@@ -517,10 +570,20 @@ const Wallet = () => {
                             Email Support
                           </Typography>
                         </Box>
-                        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+                        <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
                           Send us an email for detailed assistance
                         </Typography>
-                        <Button variant='outlined' startIcon={<Icon icon='mdi:email-outline' />}>
+                        <Typography variant='body2' sx={{ mb: 2, fontWeight: 600 }}>
+                          hello@pincodepk.com
+                        </Typography>
+                        <Button
+                          variant='outlined'
+                          startIcon={<Icon icon='mdi:email-outline' />}
+                          component='a'
+                          href='https://mail.google.com/mail/?view=cm&fs=1&to=hello@pincodepk.com'
+                          target='_blank'
+                          rel='noopener noreferrer'
+                        >
                           Send Email
                         </Button>
                       </CardContent>
