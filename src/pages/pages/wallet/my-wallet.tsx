@@ -1,5 +1,5 @@
 // ** React Imports
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // ** Next Imports
 import { useRouter } from 'next/router'
@@ -40,7 +40,7 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
-import { useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
+import { useCheckPaymentStatusQuery, useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
 import { useGetAllBanksQuery } from 'src/store/api/v1/endpoints/banks'
 
 // ** Types
@@ -50,6 +50,7 @@ import type { MerchantDataType } from 'src/context/types'
 import CardWelcomeBack from 'src/views/ui/cards/gamification/CardWelcomeBack'
 import PincodeInput from 'src/@core/components/PincodeInput'
 import PayoutRequestForm from '@/pages/components/PayoutRequestForm'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // ** Styled Components (none for table version)
 
@@ -68,6 +69,8 @@ const Wallet = () => {
   const [pincodeAction, setPincodeAction] = useState<'transfer' | 'withdraw' | 'setup' | null>(null)
   const [userPincode, setUserPincode] = useState<string | null>(null)
   const [pincodeError, setPincodeError] = useState('')
+  const [checkingTransactionRef, setCheckingTransactionRef] = useState<string | null>(null)
+  const [checkingProvider, setCheckingProvider] = useState<string | null>(null)
 
   const { user } = useAuth()
   const merchant = user as MerchantDataType
@@ -88,12 +91,56 @@ const Wallet = () => {
   const [txLimit, setTxLimit] = useState(10)
   const [txStatus, setTxStatus] = useState<string>('all')
 
-  const { data: payouts, isLoading, error } = useGetPayoutRequestsQuery({
+  const { data: payouts, isLoading, error, refetch: refetchPayouts } = useGetPayoutRequestsQuery({
     page: txPage,
     limit: txLimit,
     status: txStatus !== 'all' ? txStatus : undefined
   })
 
+  // ** Check payment status query
+  const {
+    data: transactionStatus,
+    isLoading: isTransactionStatusLoading,
+    error: transactionStatusError,
+    refetch: refetchTransactionStatus
+  } = useCheckPaymentStatusQuery(
+    { provider: checkingProvider || '', transactionRef: checkingTransactionRef || '' },
+    {
+      skip: !checkingTransactionRef || !checkingProvider,
+      refetchOnMountOrArgChange: true // Force refetch when arguments change
+    }
+  )
+
+  // ** Refetch payouts list when status check succeeds to update the table
+  useEffect(() => {
+    if (transactionStatus && !isTransactionStatusLoading && checkingTransactionRef) {
+      // Refetch the payouts list to show updated status
+      refetchPayouts()
+
+      // Show success message
+      setSnackbar({
+        open: true,
+        message: `Transaction status updated: ${transactionStatus.status}`,
+        severity: 'success'
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionStatus?.status, transactionStatus?.transactionRef, isTransactionStatusLoading, checkingTransactionRef])
+
+  // ** Handle status check errors
+  useEffect(() => {
+    if (transactionStatusError && checkingTransactionRef) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to check transaction status. Please try again.',
+        severity: 'error'
+      })
+    }
+  }, [transactionStatusError, checkingTransactionRef])
+
+  console.log('🔍 Transaction Status:', transactionStatus)
+  console.log('🔍 Transaction Status Loading:', isTransactionStatusLoading)
+  console.log('🔍 Transaction Status Error:', transactionStatusError)
 
   // ** Debug: Log wallet and bank data
   React.useEffect(() => {
@@ -250,19 +297,44 @@ const Wallet = () => {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-      case 'success':
+    if (!status || status.trim() === '') {
+      return 'default'
+    }
+
+    const normalizedStatus = status.toUpperCase().trim()
+
+    switch (normalizedStatus) {
+      case 'COMPLETED':
       case 'SUCCESS':
         return 'success'
-      case 'pending':
       case 'PENDING':
+      case 'PROCESSING':
         return 'warning'
-      case 'failed':
       case 'FAILED':
         return 'error'
+      case 'CANCELLED':
+        return 'default'
       default:
         return 'default'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    if (!status || status.trim() === '') {
+      return 'Unknown'
+    }
+
+    return status
+  }
+
+  const handleCheckStatus = (transactionRef: string, provider: string) => {
+    // Only update if it's a different transaction to trigger refetch
+    if (checkingTransactionRef !== transactionRef || checkingProvider !== provider) {
+      setCheckingTransactionRef(transactionRef)
+      setCheckingProvider(provider)
+    } else {
+      // If same transaction, manually trigger refetch
+      refetchTransactionStatus()
     }
   }
 
@@ -466,11 +538,12 @@ const Wallet = () => {
                             <TableCell>Provider</TableCell>
                             <TableCell align='right'>Amount (PKR)</TableCell>
                             <TableCell>Status</TableCell>
+                            <TableCell>Actions</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {payouts.items.map((transaction: any) => (
-                            <TableRow key={transaction.id} hover>
+                          {payouts.items.map((transaction: any, index: number) => (
+                            <TableRow key={index} hover>
                               <TableCell>{new Date(transaction.createdAt).toLocaleString()}</TableCell>
                               <TableCell>{transaction.transactionRef || transaction.id}</TableCell>
                               <TableCell>
@@ -486,10 +559,20 @@ const Wallet = () => {
                               </TableCell>
                               <TableCell>
                                 <Chip
-                                  label={transaction.status}
+                                  label={getStatusLabel(transaction.status)}
                                   size='small'
                                   color={getStatusColor(transaction.status) as any}
                                 />
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  disabled={isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef}
+                                  variant='contained' color='primary' size='small' onClick={() => handleCheckStatus(transaction.transactionRef || transaction.id, transaction.provider || 'JAZZCASH')}>
+                                  Check Status
+                                  {isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef && (
+                                    <CircularProgress size={20} sx={{ ml: 1 }} />
+                                  )}
+                                </Button>
                               </TableCell>
                             </TableRow>
                           ))}

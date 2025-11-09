@@ -75,10 +75,10 @@ export const payoutApi = api.injectEndpoints({
 
     // Check payment status by transaction reference
     checkPaymentStatus: builder.query<PaymentStatusInquiryResponse, PaymentStatusInquiryRequest>({
-      query: ({ transactionRef }) => ({
+      query: ({ transactionRef, provider }) => ({
         url: "/payments/status-inquiry",
         method: "POST",
-        body: { transactionRef },
+        body: { transactionRef, provider },
       }),
 
       // Don't cache this query as status can change frequently

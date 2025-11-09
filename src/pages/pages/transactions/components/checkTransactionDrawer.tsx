@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -37,6 +37,7 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
   const { open, toggle } = props
 
   const [referenceId, setReferenceId] = useState('')
+  const [provider, setProvider] = useState('')
   const [shouldFetch, setShouldFetch] = useState(false)
 
   // Use the API hook with skip to control when to fetch
@@ -46,26 +47,43 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
     error,
     refetch
   } = useCheckPaymentStatusQuery(
-    { transactionRef: referenceId },
-    { skip: !shouldFetch || !referenceId.trim() }
+    { transactionRef: referenceId, provider: provider },
+    { skip: !shouldFetch || !referenceId.trim() || !provider.trim() }
   )
 
+  // Trigger refetch when shouldFetch becomes true and referenceId is available
+  useEffect(() => {
+    if (shouldFetch && referenceId.trim() && provider.trim() && refetch) {
+      // Use setTimeout to ensure the query is enabled after state update
+      const timeoutId = setTimeout(() => {
+        try {
+          refetch()
+        } catch (error) {
+          // Query might not be ready yet, will retry on next effect run
+          console.warn('Failed to refetch query:', error)
+        }
+      }, 0)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [shouldFetch, referenceId, provider, refetch])
 
   const handleSubmit = () => {
-    if (referenceId.trim()) {
+    if (referenceId.trim() && provider.trim()) {
       setShouldFetch(true)
-      refetch()
     }
   }
 
   const handleClose = () => {
     setReferenceId('')
+    setProvider('')
     setShouldFetch(false)
     toggle()
   }
 
   const handleCheckAnother = () => {
     setReferenceId('')
+    setProvider('')
     setShouldFetch(false)
   }
 
@@ -122,7 +140,7 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
       <CardContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-            Enter the transaction reference ID to check its current status
+            Enter the transaction reference ID and provider to check its current status
           </Typography>
 
           <TextField
@@ -140,6 +158,21 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
             }}
           />
 
+          <TextField
+            fullWidth
+            label='Provider'
+            value={provider}
+            onChange={(e) => setProvider(e.target.value)}
+            placeholder='e.g., JAZZCASH'
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mdi:bank' />
+                </InputAdornment>
+              )
+            }}
+          />
+
           <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
             <Button
               fullWidth
@@ -152,7 +185,7 @@ const CheckTransactionDrawer = (props: CheckTransactionDrawerProps) => {
               fullWidth
               variant='contained'
               onClick={handleSubmit}
-              disabled={!referenceId.trim() || isLoading}
+              disabled={!referenceId.trim() || !provider.trim() || isLoading}
             >
               {isLoading ? 'Checking...' : 'Check Status'}
             </Button>

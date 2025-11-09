@@ -58,7 +58,7 @@ const navigation = (): VerticalNavItemsType => {
 
     // admin can access this
     {
-      badgeContent: '10',
+      // badgeContent: '10',
       badgeColor: 'success',
       title: 'Admin Payout Requests',
       icon: 'mdi:cash-sync',
@@ -76,7 +76,7 @@ const navigation = (): VerticalNavItemsType => {
     },
 
     {
-      badgeContent: '5',
+      // badgeContent: '5',
       badgeColor: 'secondary',
       auth: true,
       title: 'Transactions',

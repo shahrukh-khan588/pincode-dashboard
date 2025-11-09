@@ -2,7 +2,6 @@
 import { useState, useEffect, MouseEvent, useCallback } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
 
 
 // ** MUI Imports
@@ -12,7 +11,6 @@ import Menu from '@mui/material/Menu'
 import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import { DataGrid } from '@mui/x-data-grid'
-import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
@@ -56,16 +54,6 @@ interface CellType {
   row: AdminMerchantItem
 }
 
-const LinkStyled = styled(Link)(({ theme }) => ({
-  fontWeight: 600,
-  fontSize: '1rem',
-  cursor: 'pointer',
-  textDecoration: 'none',
-  color: theme.palette.text.secondary,
-  '&:hover': {
-    color: theme.palette.primary.main
-  }
-}))
 
 // Merchant icon variants similar to userRoleObj
 const merchantIconObj: { [key: string]: { icon: string; color: string } } = {
@@ -141,15 +129,16 @@ const RowOptions = ({ merchantId }: { merchantId: string }) => {
         }}
         PaperProps={{ style: { minWidth: '10rem' } }}
       >
-        <MenuItem
+        {/* <MenuItem
           component={Link}
           sx={{ '& svg': { mr: 2 } }}
           onClick={handleRowOptionsClose}
-          href={`/pages/merchants/merchant-detail?merchantId=${merchantId}`}
+
+          // href={`/pages/merchants/merchant-detail?merchantId=${merchantId}`}
         >
           <Icon icon='mdi:eye-outline' fontSize={20} />
           View
-        </MenuItem>
+        </MenuItem> */}
         {/* <MenuItem onClick={handleRowOptionsClose} sx={{ '& svg': { mr: 2 } }}>
           <Icon icon='mdi:pencil-outline' fontSize={20} />
           Edit
@@ -190,7 +179,8 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            <LinkStyled href={`/pages/merchants/merchant-detail?merchantId=${row.merchantId}`}>{fullName}</LinkStyled>
+            {/* <LinkStyled href={`/pages/merchants/merchant-detail?merchantId=${row.merchantId}`}>{fullName}</LinkStyled> */}
+            <Typography noWrap variant='body2'>{fullName}</Typography>
             <Typography noWrap variant='caption'>{row.merchantId}</Typography>
           </Box>
         </Box>
@@ -281,9 +271,6 @@ const UserList = () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12}>
-
-      </Grid>
       <Grid item xs={12}>
         <Card>
           <CardHeader title='Search Filters' />

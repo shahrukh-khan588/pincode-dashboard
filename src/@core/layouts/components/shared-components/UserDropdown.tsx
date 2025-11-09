@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment } from 'react'
+import { useState, useEffect, SyntheticEvent, Fragment } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -43,10 +43,28 @@ const UserDropdown = (props: Props) => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
+  const [user, setUser] = useState<UserDataType | MerchantDataType | null>(null)
 
   // ** Hooks
   const router = useRouter()
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
+
+  // ** Get user from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUserData = window.localStorage.getItem('userData')
+      if (storedUserData) {
+        try {
+          const userData = JSON.parse(storedUserData)
+          setUser(userData)
+          console.log('Parsed user data:', userData)
+        } catch (error) {
+          console.error('Error parsing user data from localStorage:', error)
+          setUser(null)
+        }
+      }
+    }
+  }, [])
 
   // ** Vars
   const { direction } = settings
@@ -119,8 +137,6 @@ const UserDropdown = (props: Props) => {
     }
   }
 
-  const isMerchant = user && (user as MerchantDataType).merchantId
-
   return (
     <Fragment>
       <Badge
@@ -169,23 +185,15 @@ const UserDropdown = (props: Props) => {
           </Box>
         </Box>
 
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/account-settings/account')}>
+        {/* //@ts-ignore */}
+        {(user as UserDataType)?.adminId === undefined && <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/account-settings/account')}>
           <Box sx={styles}>
             <Icon icon='mdi:cog-outline' />
             Settings
           </Box>
-        </MenuItem>
-        <Divider />
+        </MenuItem>}
+        {(user as UserDataType)?.adminId === undefined && <Divider />}
 
-        {!isMerchant && (
-          <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/pages/pricing')}>
-            <Box sx={styles}>
-              <Icon icon='mdi:currency-usd' />
-              Pricing
-            </Box>
-          </MenuItem>
-        )}
-        <Divider />
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}

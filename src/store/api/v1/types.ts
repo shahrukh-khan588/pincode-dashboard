@@ -188,6 +188,7 @@ export interface PayoutRequestError {
 // Payment Status Inquiry types
 export interface PaymentStatusInquiryRequest {
   transactionRef: string;
+  provider: string;
 }
 
 export interface PaymentStatusInquiryResponse {

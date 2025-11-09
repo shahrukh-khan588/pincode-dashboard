@@ -2,7 +2,6 @@
 import React, { useState, ReactNode } from 'react'
 
 // ** Next Imports
-import Link from 'next/link'
 import Image from 'next/image'
 
 // ** MUI Components
@@ -80,11 +79,11 @@ const TypographyStyled = styled(Typography)<TypographyProps>(({ theme }) => ({
   [theme.breakpoints.down('md')]: { mt: theme.spacing(8) }
 }))
 
-const LinkStyled = styled(Link)(({ theme }) => ({
-  fontSize: '0.875rem',
-  textDecoration: 'none',
-  color: theme.palette.primary.main
-}))
+// const LinkStyled = styled(Link)(({ theme }) => ({
+//   fontSize: '0.875rem',
+//   textDecoration: 'none',
+//   color: theme.palette.primary.main
+// }))
 
 const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ theme }) => ({
   '& .MuiFormControlLabel-label': {
@@ -275,19 +274,19 @@ const AdminLoginPage = () => {
                   label='Remember Me'
                   control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
                 />
-                <LinkStyled href='/admin/forgot-password'>Forgot Password?</LinkStyled>
+                {/* <LinkStyled href='/admin/forgot-password'>Forgot Password?</LinkStyled> */}
               </Box>
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
                 Admin Login
               </Button>
-              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {/* <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography variant='body2' sx={{ mr: 2 }}>
                   Need an admin account?
                 </Typography>
                 <Typography variant='body2'>
                   <LinkStyled href='/admin/register'>Create admin account</LinkStyled>
                 </Typography>
-              </Box>
+              </Box> */}
               <Divider sx={{ my: theme => `${theme.spacing(5)} !important` }}>or</Divider>
               {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <IconButton
