@@ -153,6 +153,33 @@ export interface MerchantPayoutRequestsListResponse {
   totalPages: number;
 }
 
+// Admin payout requests types
+export interface AdminPayoutDestination {
+  type: 'BANK' | 'WALLET' | string;
+  bankName?: string;
+  accountLast4?: string;
+}
+
+export interface AdminPayoutRequestItem {
+  id: string;
+  merchantId: string;
+  amount: number;
+  status: 'PENDING' | 'IN_PROGRESS' | 'REJECTED' | 'COMPLETED' | string;
+  createdAt: string;
+  merchantName: string;
+  merchantEmail: string;
+  availableAmount: number;
+  destination: AdminPayoutDestination;
+}
+
+export interface AdminPayoutRequestsResponse {
+  items: AdminPayoutRequestItem[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 // Legacy PayoutRequestResponse (for backward compatibility)
 export interface PayoutRequestResponse {
   id: string;

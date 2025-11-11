@@ -36,6 +36,14 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components Imports
 import CardStatisticsVerticalComponent from 'src/@core/components/card-statistics/card-stats-vertical'
 
+// ** API Imports
+import {
+  useGetAdminPayoutRequestsQuery,
+  useApprovePayoutRequestMutation,
+  useRejectPayoutRequestMutation
+} from 'src/store/api/v1/endpoints/admin'
+import { AdminPayoutRequestItem } from 'src/store/api/v1/types'
+
 // ** Types
 interface PayoutRequest {
   id: string
@@ -56,82 +64,9 @@ interface PayoutRequest {
 
 const PayoutList = () => {
   // ** States
-  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([
-    {
-      id: '1',
-      userId: 'USER001',
-      userName: 'John Doe',
-      userEmail: 'john.doe@example.com',
-      amount: 15000,
-      currentBalance: 45000,
-      bankName: 'HDFC Bank',
-      accountNumber: '1234567890',
-      accountTitle: 'JOHN DOE',
-      ifscCode: 'HDFC0001234',
-      status: 'pending',
-      requestDate: '2024-01-15'
-    },
-    {
-      id: '2',
-      userId: 'USER002',
-      userName: 'Jane Smith',
-      userEmail: 'jane.smith@example.com',
-      amount: 25000,
-      currentBalance: 75000,
-      bankName: 'ICICI Bank',
-      accountNumber: '9876543210',
-      accountTitle: 'JANE SMITH',
-      ifscCode: 'ICIC0005678',
-      status: 'in-progress',
-      requestDate: '2024-01-14',
-      processedDate: '2024-01-15'
-    },
-    {
-      id: '3',
-      userId: 'USER003',
-      userName: 'Mike Johnson',
-      userEmail: 'mike.johnson@example.com',
-      amount: 8000,
-      currentBalance: 28000,
-      bankName: 'SBI Bank',
-      accountNumber: '1122334455',
-      accountTitle: 'MIKE JOHNSON',
-      ifscCode: 'SBIN0009012',
-      status: 'pending',
-      requestDate: '2024-01-13'
-    },
-    {
-      id: '4',
-      userId: 'USER004',
-      userName: 'Sarah Wilson',
-      userEmail: 'sarah.wilson@example.com',
-      amount: 12000,
-      currentBalance: 35000,
-      bankName: 'Axis Bank',
-      accountNumber: '5566778899',
-      accountTitle: 'SARAH WILSON',
-      ifscCode: 'UTIB0003456',
-      status: 'rejected',
-      requestDate: '2024-01-12',
-      processedDate: '2024-01-13',
-      reason: 'Invalid account details'
-    },
-    {
-      id: '5',
-      userId: 'USER005',
-      userName: 'David Brown',
-      userEmail: 'david.brown@example.com',
-      amount: 18000,
-      currentBalance: 52000,
-      bankName: 'Kotak Mahindra Bank',
-      accountNumber: '9988776655',
-      accountTitle: 'DAVID BROWN',
-      ifscCode: 'KKBK0009988',
-      status: 'pending',
-      requestDate: '2024-01-16'
-    }
-  ])
-
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [dateFilter, setDateFilter] = useState<string>('all')
@@ -146,13 +81,81 @@ const PayoutList = () => {
     severity: 'success'
   })
 
+  // ** Map API response to component data structure
+  const mapApiToComponent = React.useCallback((item: AdminPayoutRequestItem): PayoutRequest => {
+    // Map status from API format to component format
+    let mappedStatus: 'pending' | 'in-progress' | 'rejected' = 'pending'
+    if (item.status === 'PENDING') {
+      mappedStatus = 'pending'
+    } else if (item.status === 'IN_PROGRESS' || item.status === 'COMPLETED') {
+      mappedStatus = 'in-progress'
+    } else if (item.status === 'REJECTED') {
+      mappedStatus = 'rejected'
+    }
+
+    return {
+      id: item.id,
+      userId: item.merchantId,
+      userName: item.merchantName,
+      userEmail: item.merchantEmail,
+      amount: item.amount,
+      currentBalance: item.availableAmount,
+      bankName: item.destination?.bankName || 'N/A',
+      accountNumber: item.destination?.accountLast4 ? `****${item.destination.accountLast4}` : 'N/A',
+      accountTitle: item.merchantName.toUpperCase(),
+      ifscCode: 'N/A', // Not available in API response
+      status: mappedStatus,
+      requestDate: item.createdAt.split('T')[0]
+    }
+  }, [])
+
+  // ** Map status filter to API format
+  const getApiStatus = (filter: string): string | undefined => {
+    if (filter === 'all') {
+      return undefined
+    }
+    if (filter === 'pending') {
+      return 'PENDING'
+    }
+    if (filter === 'in-progress') {
+      return 'IN_PROGRESS'
+    }
+    if (filter === 'rejected') {
+      return 'REJECTED'
+    }
+
+    return undefined
+  }
+
+  // ** API Query
+  const { data: payoutData, isLoading, error, refetch } = useGetAdminPayoutRequestsQuery({
+    page,
+    limit: pageSize,
+    status: getApiStatus(statusFilter),
+    search: searchQuery || undefined
+  })
+
+  // ** Mutations
+  const [approvePayoutRequest, { isLoading: isApproving }] = useApprovePayoutRequestMutation()
+  const [rejectPayoutRequest, { isLoading: isRejecting }] = useRejectPayoutRequestMutation()
+
+  // ** Update payout requests when API data changes
+  React.useEffect(() => {
+    if (payoutData?.items) {
+      const mappedRequests = payoutData.items.map(mapApiToComponent)
+      setPayoutRequests(mappedRequests)
+    }
+  }, [payoutData, mapApiToComponent])
+
   // ** Handlers
   const handleStatusFilter = (event: any) => {
     setStatusFilter(event.target.value)
+    setPage(1) // Reset to first page when filter changes
   }
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value)
+    setPage(1) // Reset to first page when search changes
   }
 
   const handleDateFilterChange = (event: any) => {
@@ -168,40 +171,61 @@ const PayoutList = () => {
     setActionDialog({ open: true, action })
   }
 
-  const handleActionConfirm = () => {
+  const handleActionConfirm = async () => {
     if (!selectedRequest) return
 
-    const updatedRequests = payoutRequests.map(request => {
-      if (request.id === selectedRequest.id) {
-        const updatedRequest = { ...request }
+    try {
+      if (actionDialog.action === 'accept') {
+        // Approve payout request
+        await approvePayoutRequest({ payoutRequestId: selectedRequest.id }).unwrap()
+        setSnackbar({
+          open: true,
+          message: 'Payout request approved successfully',
+          severity: 'success'
+        })
+      } else if (actionDialog.action === 'reject') {
+        // Reject payout request
+        if (!rejectionReason.trim()) {
+          setSnackbar({
+            open: true,
+            message: 'Please provide a rejection reason',
+            severity: 'error'
+          })
 
-        if (actionDialog.action === 'accept') {
-          updatedRequest.status = 'in-progress'
-          updatedRequest.processedDate = new Date().toISOString().split('T')[0]
-        } else if (actionDialog.action === 'reject') {
-          updatedRequest.status = 'rejected'
-          updatedRequest.reason = rejectionReason
-          updatedRequest.processedDate = new Date().toISOString().split('T')[0]
-        } else if (actionDialog.action === 'complete') {
-          updatedRequest.status = 'in-progress'
+          return
         }
-
-        return updatedRequest
+        await rejectPayoutRequest({
+          payoutRequestId: selectedRequest.id,
+          reason: rejectionReason
+        }).unwrap()
+        setSnackbar({
+          open: true,
+          message: 'Payout request rejected successfully',
+          severity: 'success'
+        })
+      } else if (actionDialog.action === 'complete') {
+        // TODO: Add complete mutation when API endpoint is available
+        setSnackbar({
+          open: true,
+          message: 'Complete action not yet implemented',
+          severity: 'success'
+        })
       }
 
-      return request
-    })
+      // Close dialog and reset state
+      setActionDialog({ open: false, action: '' })
+      setRejectionReason('')
+      setSelectedRequest(null)
 
-    setPayoutRequests(updatedRequests)
-    setActionDialog({ open: false, action: '' })
-    setRejectionReason('')
-    setSelectedRequest(null)
-
-    setSnackbar({
-      open: true,
-      message: `Request ${actionDialog.action === 'accept' ? 'accepted' : actionDialog.action === 'reject' ? 'rejected' : 'completed'} successfully`,
-      severity: 'success'
-    })
+      // Data will be automatically refetched due to invalidatesTags
+    } catch (error: any) {
+      const errorMessage = error?.data?.error || error?.data?.message || 'Failed to update request. Please try again.'
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      })
+    }
   }
 
   const handleCloseDialog = () => {
@@ -212,23 +236,6 @@ const PayoutList = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false })
-  }
-
-  // ** Copy to clipboard function
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setSnackbar({
-        open: true,
-        message: `${label} copied to clipboard!`,
-        severity: 'success'
-      })
-    }).catch(() => {
-      setSnackbar({
-        open: true,
-        message: 'Failed to copy to clipboard',
-        severity: 'error'
-      })
-    })
   }
 
   // ** Date filter helper function
@@ -292,7 +299,7 @@ const PayoutList = () => {
 
   // ** Statistics
   const stats = {
-    total: payoutRequests.length,
+    total: payoutData?.total || 0,
     pending: payoutRequests.filter(r => r.status === 'pending').length,
     inProgress: payoutRequests.filter(r => r.status === 'in-progress').length,
     rejected: payoutRequests.filter(r => r.status === 'rejected').length,
@@ -375,22 +382,9 @@ const PayoutList = () => {
 
         return (
           <Box sx={{ py: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <Typography variant='body1' sx={{ fontWeight: 600, flex: 1 }}>
-                {params.value}
-              </Typography>
-              <Tooltip title="Copy Bank Details">
-                <IconButton
-                  size='small'
-                  onClick={() => copyToClipboard(
-                    `${request.bankName}\nAccount: ${request.accountNumber}\nIFSC: ${request.ifscCode}\nTitle: ${request.accountTitle}\nAmount: Rs. ${request.amount.toLocaleString()}`,
-                    'Bank details'
-                  )}
-                >
-                  <Icon icon='mdi:content-copy' fontSize='small' />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            <Typography variant='body1' sx={{ fontWeight: 600, mb: 1 }}>
+              {params.value}
+            </Typography>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 0.5 }}>
               A/C: {params.row.accountNumber}
             </Typography>
@@ -474,18 +468,6 @@ const PayoutList = () => {
                 </Button>
               </Tooltip>
             )}
-
-            <Tooltip title="Copy Bank Details">
-              <IconButton
-                size='small'
-                onClick={() => copyToClipboard(
-                  `${request.bankName}\nAccount: ${request.accountNumber}\nIFSC: ${request.ifscCode}\nTitle: ${request.accountTitle}\nAmount: Rs. ${request.amount.toLocaleString()}`,
-                  'Bank details'
-                )}
-              >
-                <Icon icon='mdi:content-copy' />
-              </IconButton>
-            </Tooltip>
           </Box>
         )
       }
@@ -545,7 +527,7 @@ const PayoutList = () => {
       <Card sx={{ mb: 6 }}>
         <CardHeader
           title='Payout Requests'
-          subheader={`Showing ${filteredRequests.length} of ${payoutRequests.length} requests`}
+          subheader={`Showing ${filteredRequests.length} of ${payoutData?.total || 0} requests`}
           action={
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
               <TextField
@@ -594,19 +576,43 @@ const PayoutList = () => {
           }
         />
         <CardContent sx={{ p: 0 }}>
-          <DataGrid
-            rows={filteredRequests}
-            columns={columns}
-            pageSize={10}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            checkboxSelection
-            disableSelectionOnClick
-            autoHeight
-            selectionModel={rowSelectionModel}
-            onSelectionModelChange={(newRowSelectionModel: GridSelectionModel) => {
-              setRowSelectionModel(newRowSelectionModel)
-            }}
-          />
+          {isLoading ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography>Loading payout requests...</Typography>
+            </Box>
+          ) : error ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Alert severity="error" sx={{ mb: 2 }}>
+                Failed to load payout requests. Please try again.
+              </Alert>
+              <Button variant="contained" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </Box>
+          ) : (
+            <DataGrid
+              rows={filteredRequests}
+              columns={columns}
+              page={page - 1}
+              pageSize={pageSize}
+              rowsPerPageOptions={[10, 20, 50, 100]}
+              checkboxSelection
+              disableSelectionOnClick
+              autoHeight
+              paginationMode="server"
+              rowCount={payoutData?.total || 0}
+              onPageChange={(newPage) => setPage(newPage + 1)}
+              onPageSizeChange={(newPageSize) => {
+                setPageSize(newPageSize)
+                setPage(1)
+              }}
+              selectionModel={rowSelectionModel}
+              onSelectionModelChange={(newRowSelectionModel: GridSelectionModel) => {
+                setRowSelectionModel(newRowSelectionModel)
+              }}
+              loading={isLoading}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -646,9 +652,13 @@ const PayoutList = () => {
             onClick={handleActionConfirm}
             variant='contained'
             color={actionDialog.action === 'reject' ? 'error' : 'primary'}
-            disabled={actionDialog.action === 'reject' && !rejectionReason.trim()}
+            disabled={
+              (actionDialog.action === 'reject' && !rejectionReason.trim()) ||
+              isApproving ||
+              isRejecting
+            }
           >
-            Confirm
+            {isApproving || isRejecting ? 'Processing...' : 'Confirm'}
           </Button>
         </DialogActions>
       </Dialog>
