@@ -14,8 +14,11 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
+import CardHeader from '@mui/material/CardHeader'
 import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
 import Avatar from '@mui/material/Avatar'
+import IconButton from '@mui/material/IconButton'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -40,7 +43,7 @@ import Icon from 'src/@core/components/icon'
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
 import { useGetWalletDetailsQuery } from 'src/store/api/v1/endpoints/my-wallet'
-import { useCheckPaymentStatusQuery, useGetPayoutRequestsQuery } from 'src/store/api/v1/endpoints/payout'
+import { useCheckPaymentStatusQuery, useGetPayoutRequestsQuery, useTransferToWalletMutation } from 'src/store/api/v1/endpoints/payout'
 import { useGetAllBanksQuery } from 'src/store/api/v1/endpoints/banks'
 
 // ** Types
@@ -66,6 +69,12 @@ const Wallet = () => {
   const [checkingTransactionRef, setCheckingTransactionRef] = useState<string | null>(null)
   const [checkingProvider, setCheckingProvider] = useState<string | null>(null)
 
+  // Wallet transfer states
+  const [walletTransferAmount, setWalletTransferAmount] = useState(100)
+  const [walletProvider, setWalletProvider] = useState('JAZZCASH')
+  const [walletNumber, setWalletNumber] = useState('')
+  const [walletNote, setWalletNote] = useState('')
+
   const { user } = useAuth()
   const merchant = user as MerchantDataType
 
@@ -80,6 +89,9 @@ const Wallet = () => {
 
   // ** Fetch bank accounts from API
   const { data: bankAccounts, isLoading: isBanksLoading, error: banksError } = useGetAllBanksQuery({})
+
+  // ** Wallet transfer mutation
+  const [transferToWallet, { isLoading: isTransferring }] = useTransferToWalletMutation()
 
   const [txPage, setTxPage] = useState(1)
   const [txLimit, setTxLimit] = useState(10)
@@ -242,6 +254,46 @@ const Wallet = () => {
     return status
   }
 
+  const handleWalletTransfer = async () => {
+    if (!walletNumber || walletTransferAmount < 100) {
+      setSnackbar({
+        open: true,
+        message: 'Please enter a valid wallet number and amount (minimum RS: 100)',
+        severity: 'error'
+      })
+
+      return
+    }
+
+    try {
+      await transferToWallet({
+        merchantId: merchant?.merchantId || '',
+        amount: walletTransferAmount,
+        destinationType: 'WALLET',
+        walletProvider: walletProvider,
+        walletNumber: walletNumber,
+        note: walletNote || undefined
+      }).unwrap()
+
+      setSnackbar({
+        open: true,
+        message: `Successfully transferred RS: ${walletTransferAmount.toLocaleString()} to ${walletNumber}`,
+        severity: 'success'
+      })
+
+      // Reset form
+      setWalletTransferAmount(100)
+      setWalletNumber('')
+      setWalletNote('')
+    } catch (error: any) {
+      setSnackbar({
+        open: true,
+        message: error?.data?.message || 'Failed to transfer to wallet. Please try again.',
+        severity: 'error'
+      })
+    }
+  }
+
   const handleCheckStatus = (transactionRef: string, provider: string) => {
     // Only update if it's a different transaction to trigger refetch
     if (checkingTransactionRef !== transactionRef || checkingProvider !== provider) {
@@ -315,7 +367,8 @@ const Wallet = () => {
             <Box sx={{ display: 'flex', borderBottom: 1, borderColor: 'divider' }}>
               {[
                 { key: 'transactions', label: 'Recent Transactions', icon: 'mdi:swap-horizontal' },
-                { key: 'transfer', label: 'Quick Transfer', icon: 'mdi:bank-transfer' },
+                { key: 'payout-request', label: 'Payout Request', icon: 'mdi:bank-transfer' },
+                { key: 'transfer', label: 'Transfer', icon: 'mdi:transfer-right' },
                 { key: 'support', label: 'Support', icon: 'mdi:help-circle' }
               ].map((tab) => (
                 <Button
@@ -343,7 +396,7 @@ const Wallet = () => {
 
         {/* Content Sections */}
         <Grid item xs={12}>
-          {selectedTab === 'transfer' && (
+          {selectedTab === 'payout-request' && (
             <>
               {isWalletLoading ? (
                 <Card>
@@ -525,7 +578,238 @@ const Wallet = () => {
             </Card>
           )}
 
+          {selectedTab === 'transfer' && (
+            <Card>
+              <CardHeader
+                title='Transfer'
+                titleTypographyProps={{ variant: 'h6', fontSize: '1.1rem' }}
+                subheader='Transfer amount'
+              />
+              <Divider />
+              <CardContent>
+                <Grid container spacing={3}>
+                  {/*  Provider Selection */}
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 600 }}>
+                      Select Provider
+                    </Typography>
+                    <FormControl fullWidth>
+                      <Select
+                        value={walletProvider}
+                        onChange={(e) => setWalletProvider(e.target.value)}
+                        size="small"
+                      >
+                        <MenuItem value="JAZZCASH">JazzCash</MenuItem>
+                        <MenuItem value="EASYPaisa">Easypaisa</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
 
+                  {/* Wallet Number */}
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 600 }}>
+                      Wallet Number
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Enter wallet number"
+                      value={walletNumber}
+                      onChange={(e) => setWalletNumber(e.target.value)}
+                      InputProps={{
+                        startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary', fontSize: '0.875rem' }}>+92</Typography>
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Amount Counter Input */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5, fontWeight: 600, textTransform: 'uppercase' }}>
+                      Insert Amount
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+                      <IconButton
+                        onClick={() => setWalletTransferAmount(Math.max(100, walletTransferAmount - 100))}
+                        disabled={walletTransferAmount <= 100}
+                        size="small"
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          '&:hover': { borderColor: 'primary.main', backgroundColor: 'action.hover' },
+                          '&:disabled': { borderColor: 'divider', opacity: 0.5 }
+                        }}
+                      >
+                        <Icon icon='mdi:minus' />
+                      </IconButton>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        size="small"
+                        inputProps={{
+                          min: 100,
+                          max: 50000,
+                          step: 100
+                        }}
+                        value={walletTransferAmount}
+                        onChange={(e) => {
+                          const inputValue = e.target.value
+
+                          // Allow empty string for typing
+                          if (inputValue === '' || inputValue === '-') {
+                            setWalletTransferAmount(0)
+
+                            return
+                          }
+                          const value = parseInt(inputValue, 10)
+
+                          // Clamp value to min/max while typing
+                          if (!isNaN(value) && value >= 0) {
+                            if (value > 50000) {
+                              setWalletTransferAmount(50000)
+                            } else {
+                              setWalletTransferAmount(value)
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value, 10)
+
+                          // Validate and clamp on blur
+                          if (isNaN(value) || value < 100) {
+                            setWalletTransferAmount(100)
+                          } else if (value > 50000) {
+                            setWalletTransferAmount(50000)
+                          } else {
+                            setWalletTransferAmount(value)
+                          }
+                        }}
+                        InputProps={{
+                          startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary', fontSize: '0.875rem' }}>RS:</Typography>,
+                          sx: {
+                            fontSize: { xs: '1rem', sm: '1.125rem' },
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            '& input': { textAlign: 'center' }
+                          }
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            fontSize: { xs: '1rem', sm: '1.125rem' },
+                            fontWeight: 600
+                          }
+                        }}
+                      />
+                      <IconButton
+                        onClick={() => setWalletTransferAmount(Math.min(50000, walletTransferAmount + 100))}
+                        disabled={walletTransferAmount >= 50000}
+                        size="small"
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          '&:hover': { borderColor: 'primary.main', backgroundColor: 'action.hover' },
+                          '&:disabled': { borderColor: 'divider', opacity: 0.5 }
+                        }}
+                      >
+                        <Icon icon='mdi:plus' />
+                      </IconButton>
+                    </Box>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.5 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Min: RS 100
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Max: RS 50,000
+                      </Typography>
+                    </Stack>
+                  </Grid>
+
+                  {/* Note */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1, fontWeight: 600 }}>
+                      Note (Optional)
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={walletNote}
+                      onChange={(e) => setWalletNote(e.target.value)}
+                      placeholder="Add a note for this transfer"
+                      multiline
+                      rows={2}
+                    />
+                  </Grid>
+
+                  {/* Transfer Summary */}
+                  {walletTransferAmount >= 100 && walletNumber && (
+                    <Grid item xs={12}>
+                      <Card variant="outlined">
+                        <CardContent sx={{ p: 2 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+                            Transfer Summary
+                          </Typography>
+                          <Stack spacing={1.5}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                To:
+                              </Typography>
+                              <Typography variant="body2" fontWeight={600} sx={{ textAlign: 'right', maxWidth: { xs: '60%', sm: '70%' }, wordBreak: 'break-word' }}>
+                                {walletProvider} - {walletNumber}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Amount:
+                              </Typography>
+                              <Typography variant="body2" fontWeight={600}>
+                                {formatCurrency(walletTransferAmount)}
+                              </Typography>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Remaining Balance:
+                              </Typography>
+                              <Typography variant="body2" fontWeight={600} color="success.main">
+                                {formatCurrency((walletDetails?.availableBalance || 0) - walletTransferAmount)}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )}
+
+                  {/* Validation Alert */}
+                  {walletTransferAmount > (walletDetails?.availableBalance || 0) && (
+                    <Grid item xs={12}>
+                      <Alert severity="error" icon={<Icon icon='mdi:alert-circle' />} sx={{ py: 1 }}>
+                        Insufficient balance. Available: {formatCurrency(walletDetails?.availableBalance || 0)}
+                      </Alert>
+                    </Grid>
+                  )}
+
+                  {/* Transfer Button */}
+                  <Grid item xs={12}>
+                    <Button
+                      variant='contained'
+                      fullWidth
+                      size="medium"
+                      startIcon={<Icon icon='mdi:wallet' />}
+                      onClick={handleWalletTransfer}
+                      disabled={!walletNumber || walletTransferAmount < 100 || walletTransferAmount > (walletDetails?.availableBalance || 0) || isTransferring}
+                      sx={{
+                        py: 1.25,
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                        fontWeight: 600
+                      }}
+                    >
+                      {isTransferring ? 'Processing...' : `Transfer ${formatCurrency(walletTransferAmount)}`}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
 
           {selectedTab === 'support' && (
             <Card>

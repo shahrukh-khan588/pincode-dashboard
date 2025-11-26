@@ -77,7 +77,8 @@ const maskAccount = (value?: string) => {
 
 const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
   const { user } = useAuth()
-  const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
+
+  // const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
   const [showAccountInfo, setShowAccountInfo] = useState(false)
   const [showBankInfo, setShowBankInfo] = useState(false)
   const [transferAmount, setTransferAmount] = useState(10000)
@@ -160,7 +161,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
               )}
             </CardContent>
           </Card>
-
+{/*
           <Grid container spacing={6} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
               <motion.div animate={{ scale: yearMode === 'income' ? 1.02 : 1 }}>
@@ -196,7 +197,7 @@ const MerchantProfilePage: NextPage & { authGuard?: boolean } = () => {
                 </Card>
               </motion.div>
             </Grid>
-          </Grid>
+          </Grid> */}
 
           <Card sx={{ mt: 6 }}>
             <CardHeader

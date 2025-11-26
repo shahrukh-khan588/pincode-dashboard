@@ -108,6 +108,15 @@ export interface PayoutRequest {
   description?: string;
 }
 
+export interface WalletTransferRequest {
+  merchantId: string;
+  amount: number;
+  destinationType: 'WALLET';
+  walletProvider: string;
+  walletNumber: string;
+  note?: string;
+}
+
 // Payment/Payout Response from API (actual structure)
 export interface PaymentResponse {
   id: string;

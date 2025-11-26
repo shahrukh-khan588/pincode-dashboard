@@ -1,5 +1,5 @@
 import { api } from "..";
-import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse, PaymentStatusInquiryRequest, PaymentStatusInquiryResponse, MerchantPayoutRequestsListResponse } from "../types";
+import { PayoutRequest, PayoutRequestResponse, PaymentsListResponse, PaymentStatusInquiryRequest, PaymentStatusInquiryResponse, MerchantPayoutRequestsListResponse, WalletTransferRequest } from "../types";
 
 export const payoutApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -84,6 +84,16 @@ export const payoutApi = api.injectEndpoints({
       // Don't cache this query as status can change frequently
       keepUnusedDataFor: 0,
     }),
+
+    // Transfer to wallet
+    transferToWallet: builder.mutation<PaymentResponse, WalletTransferRequest>({
+      query: (transferData) => ({
+        url: "/payments/transfer",
+        method: "POST",
+        body: transferData,
+      }),
+      invalidatesTags: ["MerchantProfile", "WalletDetails"],
+    }),
   }),
 });
 
@@ -94,4 +104,5 @@ export const {
   useGetPayoutRequestQuery,
   useCancelPayoutRequestMutation,
   useCheckPaymentStatusQuery,
+  useTransferToWalletMutation,
 } = payoutApi;

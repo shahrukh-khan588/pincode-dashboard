@@ -11,7 +11,8 @@ import Divider from '@mui/material/Divider'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
-import Avatar from '@mui/material/Avatar'
+
+// import Avatar from '@mui/material/Avatar'
 
 import IconButton from '@mui/material/IconButton'
 
@@ -72,7 +73,8 @@ const formatCurrency = (value: number) =>
 
 const ProfileTab = ({ data }: { data: any }) => {
   const { user } = useAuth()
-  const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
+
+  // const [yearMode, setYearMode] = useState<'income' | 'expenses'>('income')
   const [showAccountInfo, setShowAccountInfo] = useState(false)
 
   // Touch incoming prop to avoid unused-var while this tab uses merchant UI
@@ -215,7 +217,7 @@ const ProfileTab = ({ data }: { data: any }) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <Card onClick={() => setYearMode('income')} sx={{ cursor: 'pointer', border: theme => yearMode === 'income' ? `2px solid ${theme.palette.success.main}` : undefined }}>
               <CardContent>
                 <Stack direction='row' spacing={2} alignItems='center'>
@@ -229,8 +231,8 @@ const ProfileTab = ({ data }: { data: any }) => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Grid> */}
+          {/* <Grid item xs={12} md={6}>
             <Card onClick={() => setYearMode('expenses')} sx={{ cursor: 'pointer', border: theme => yearMode === 'expenses' ? `2px solid ${theme.palette.error.main}` : undefined }}>
               <CardContent>
                 <Stack direction='row' spacing={2} alignItems='center'>
@@ -244,7 +246,7 @@ const ProfileTab = ({ data }: { data: any }) => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Grid>
     </Grid>
