@@ -48,7 +48,6 @@ import type { MerchantDataType } from 'src/context/types'
 
 // ** Components
 import CardWelcomeBack from 'src/views/ui/cards/gamification/CardWelcomeBack'
-import PincodeInput from 'src/@core/components/PincodeInput'
 import PayoutRequestForm from '@/pages/components/PayoutRequestForm'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -63,12 +62,7 @@ const Wallet = () => {
   const [showWithdraw, setShowWithdraw] = useState(false)
   const [amount, setAmount] = useState('')
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
-  const [transferAmount, setTransferAmount] = useState(10000)
   const [selectedBank, setSelectedBank] = useState('')
-  const [showPincodeDialog, setShowPincodeDialog] = useState(false)
-  const [pincodeAction, setPincodeAction] = useState<'transfer' | 'withdraw' | 'setup' | null>(null)
-  const [userPincode, setUserPincode] = useState<string | null>(null)
-  const [pincodeError, setPincodeError] = useState('')
   const [checkingTransactionRef, setCheckingTransactionRef] = useState<string | null>(null)
   const [checkingProvider, setCheckingProvider] = useState<string | null>(null)
 
@@ -215,86 +209,7 @@ const Wallet = () => {
 
 
 
-  const handlePincodeComplete = (pincode: string) => {
-    setPincodeError('')
 
-    if (pincodeAction === 'setup') {
-      // Setting up new pincode
-      setUserPincode(pincode)
-      setSnackbar({
-        open: true,
-        message: 'PIN set successfully! Your wallet is now secured.',
-        severity: 'success'
-      })
-      setShowPincodeDialog(false)
-      setPincodeAction(null)
-    } else {
-      // Verifying existing pincode
-      if (userPincode && pincode === userPincode) {
-        setSnackbar({
-          open: true,
-          message: 'PIN verified successfully!',
-          severity: 'success'
-        })
-
-        // Execute the action based on pincodeAction
-        if (pincodeAction === 'transfer') {
-          executeTransfer()
-        } else if (pincodeAction === 'withdraw') {
-          executeWithdraw()
-        }
-
-        setShowPincodeDialog(false)
-        setPincodeAction(null)
-      } else {
-        setPincodeError('Invalid PIN. Please try again.')
-      }
-    }
-  }
-
-  const handlePincodeError = (error: string) => {
-    setPincodeError(error)
-  }
-
-  const openPincodeDialog = (action: 'transfer' | 'withdraw' | 'setup') => {
-    if (action === 'setup' || !userPincode) {
-      setPincodeAction('setup')
-      setShowPincodeDialog(true)
-    } else {
-      setPincodeAction(action)
-      setShowPincodeDialog(true)
-    }
-  }
-
-  const executeTransfer = () => {
-    if (selectedBank && transferAmount <= (mockMerchant?.walletBalance?.availableBalance || 0)) {
-      setSnackbar({
-        open: true,
-        message: `Successfully transferred ${formatCurrency(transferAmount)} to your bank account`,
-        severity: 'success'
-      })
-
-      // Reset form
-      setTransferAmount(10000)
-      setSelectedBank('')
-    }
-  }
-
-  const executeWithdraw = () => {
-    if (amount && selectedBank) {
-      const selectedBankAccount = bankAccounts?.find(bank => bank.id === selectedBank)
-      const bankName = selectedBankAccount?.bankName || 'your bank account'
-
-      setSnackbar({
-        open: true,
-        message: `Withdrawal request of ${formatCurrency(parseInt(amount))} to ${bankName} submitted`,
-        severity: 'success'
-      })
-      setShowWithdraw(false)
-      setAmount('')
-      setSelectedBank('')
-    }
-  }
 
   const getStatusColor = (status: string) => {
     if (!status || status.trim() === '') {
@@ -347,35 +262,12 @@ const Wallet = () => {
 
       {/* Wallet Header */}
       <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant='h4' sx={{ fontWeight: 600 }}>
-            My Wallet
-          </Typography>
-          {!userPincode && (
-            <Button
-              variant='contained'
-              size='small'
-              startIcon={<Icon icon='mdi:lock-plus' />}
-              onClick={() => openPincodeDialog('setup')}
-              sx={{ ml: 2 }}
-            >
-              Set PIN
-            </Button>
-          )}
-        </Box>
+        <Typography variant='h4' sx={{ mb: 1, fontWeight: 600 }}>
+          My Wallet
+        </Typography>
         <Typography variant='body1' color='text.secondary'>
           Manage your payments, transactions
         </Typography>
-        {userPincode && (
-          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
-            <Chip
-              label='Secured with PIN'
-              color='success'
-              size='small'
-              icon={<Icon icon='mdi:shield-check' />}
-            />
-          </Box>
-        )}
       </Box>
 
       <Grid container spacing={3}>
@@ -403,7 +295,6 @@ const Wallet = () => {
               walletBalance={walletDetails.availableBalance}
               totalEarnings={walletDetails.totalEarnings}
               pendingAmount={walletDetails.pendingBalance}
-              onWithdraw={() => setShowWithdraw(true)}
             />
           ) : (
             <Card>
@@ -795,60 +686,31 @@ const Wallet = () => {
             }}
           />
           <Alert severity='info' sx={{ mb: 2 }}>
-            Minimum withdrawal amount: RS: 500
+            Minimum withdrawal amount: RS: 100
           </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowWithdraw(false)}>Cancel</Button>
           <Button
             onClick={() => {
-              setShowWithdraw(false)
-              openPincodeDialog('withdraw')
+              if (amount && selectedBank) {
+                const selectedBankAccount = bankAccounts?.find(bank => bank.id === selectedBank)
+                const bankName = selectedBankAccount?.bankName || 'your bank account'
+
+                setSnackbar({
+                  open: true,
+                  message: `Withdrawal request of ${formatCurrency(parseInt(amount))} to ${bankName} submitted`,
+                  severity: 'success'
+                })
+                setShowWithdraw(false)
+                setAmount('')
+                setSelectedBank('')
+              }
             }}
             variant='contained'
             disabled={!selectedBank || !amount}
           >
             Withdraw
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* PIN Code Dialog */}
-      <Dialog
-        open={showPincodeDialog}
-        onClose={() => {
-          setShowPincodeDialog(false)
-          setPincodeAction(null)
-          setPincodeError('')
-        }}
-        maxWidth='sm'
-        fullWidth
-      >
-        <DialogTitle>
-          {pincodeAction === 'setup' ? 'Set Transaction PIN' : 'Verify PIN'}
-        </DialogTitle>
-        <DialogContent sx={{ py: 4 }}>
-          <PincodeInput
-            title={pincodeAction === 'setup' ? 'Create 4-digit PIN' : 'Enter your PIN'}
-            subtitle={pincodeAction === 'setup'
-              ? 'This PIN will be required for all wallet transactions'
-              : 'Enter your 4-digit PIN to continue'
-            }
-            onComplete={handlePincodeComplete}
-            onError={handlePincodeError}
-            error={pincodeError}
-            autoFocus={true}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setShowPincodeDialog(false)
-              setPincodeAction(null)
-              setPincodeError('')
-            }}
-          >
-            Cancel
           </Button>
         </DialogActions>
       </Dialog>

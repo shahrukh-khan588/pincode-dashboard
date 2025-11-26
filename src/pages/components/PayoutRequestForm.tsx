@@ -11,14 +11,12 @@ import {
   Stack,
   Avatar,
   Slider,
-  Paper,
   FormControl,
   Select,
   MenuItem,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Icon from 'src/@core/components/icon';
-import PincodeInput from 'src/@core/components/PincodeInput';
 import usePayout from 'src/hooks/usePayout';
 import { MerchantDataType } from 'src/context/types';
 import { BankType } from 'src/store/api/v1/endpoints/banks';
@@ -69,11 +67,9 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const [amount, setAmount] = useState(10000);
+  const [amount, setAmount] = useState(500);
   const [selectedBank, setSelectedBank] = useState('');
   const [description, setDescription] = useState('');
-  const [showPinDialog, setShowPinDialog] = useState(false);
-  const [pinError, setPinError] = useState('');
 
   // Use prop bank accounts or fallback to mock data
   const bankAccounts = propBankAccounts && propBankAccounts.length > 0
@@ -98,11 +94,10 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
 
   const { requestPayout, isSubmitting, validationErrors, clearValidationErrors } = usePayout({
     onSuccess: () => {
-      setShowPinDialog(false);
       onSuccess?.();
     },
     onError: (error) => {
-      setPinError(error?.data?.message || 'Failed to process payout request');
+      console.error('Payout request error:', error);
     },
   });
 
@@ -121,33 +116,22 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   };
 
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     clearValidationErrors();
-    setPinError('');
-    setShowPinDialog(true);
-  };
-
-  const handlePinComplete = async (pin: string) => {
-    setPinError('');
 
     const result = await requestPayout({
       amount: amount,
       bankAccountId: selectedBank,
-      transactionPin: pin,
       description: description || undefined,
     });
 
     if (!result.success) {
-      setPinError(result.error || 'Invalid PIN or request failed');
+      console.error('Payout request failed:', result.error);
     }
   };
 
-  const handlePinError = (error: string) => {
-    setPinError(error);
-  };
-
-  const isValidAmount = amount >= 1000 && amount <= 100000;
-  const hasSufficientBalance = amount <= (merchant?.walletBalance?.availableBalance || 0);
+  const isValidAmount = Number(amount) >= 100 && Number(amount) <= 100000;
+  const hasSufficientBalance = Number(amount) <= (merchant?.walletBalance?.availableBalance || 0);
 
   return (
     <>
@@ -220,10 +204,11 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
               <Slider
                 value={amount}
                 onChange={(_, value) => setAmount(value as number)}
-                min={1000}
+                min={100}
                 max={100000}
-                step={1000}
+                step={100}
                 marks={[
+                  { value: 100, label: '100' },
                   { value: 1000, label: '1K' },
                   { value: 10000, label: '10K' },
                   { value: 25000, label: '25K' },
@@ -246,7 +231,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
               />
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
                 <Typography variant="caption" color="text.secondary">
-                  Min: RS 1,000
+                  Min: RS 100
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Max: RS 100,000
@@ -306,7 +291,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
 
             {!isValidAmount && amount > 0 && (
               <Alert severity="warning" icon={<Icon icon='mdi:information' />}>
-                Amount must be between RS 1,000 and RS 100,000
+                Amount must be between RS 100 and RS 100,000
               </Alert>
             )}
 
@@ -337,7 +322,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
               <Button
                 variant="contained"
                 onClick={handleSubmit}
-                disabled={!selectedBank || amount <= 0 || !isValidAmount || !hasSufficientBalance || isSubmitting}
+                disabled={!selectedBank || !isValidAmount || !hasSufficientBalance || isSubmitting}
                 startIcon={<Icon icon='mdi:bank-transfer' />}
                 fullWidth
                 size="large"
@@ -350,40 +335,6 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
         </CardContent>
       </StyledCard>
 
-      {/* PIN Input - Show when dialog is open */}
-      {showPinDialog && (
-        <Box sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <Paper sx={{ p: 4, maxWidth: 400, width: '90%' }}>
-            <PincodeInput
-              title="Verify Transaction PIN"
-              subtitle="Enter your 4-digit PIN to confirm the payout request"
-              onComplete={handlePinComplete}
-              onError={handlePinError}
-              error={pinError}
-              autoFocus={true}
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Button
-                variant="outlined"
-                onClick={() => setShowPinDialog(false)}
-              >
-                Cancel
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-      )}
     </>
   );
 };

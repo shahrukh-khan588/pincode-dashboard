@@ -104,7 +104,7 @@ export interface RegisterRequest {
 export interface PayoutRequest {
   amount: number;
   bankAccountId: string;
-  transactionPin: string;
+  transactionPin?: string;
   description?: string;
 }
 

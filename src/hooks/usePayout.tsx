@@ -27,8 +27,8 @@ export const usePayout = (options: UsePayoutOptions = {}) => {
     // Amount validation
     if (!data.amount || data.amount <= 0) {
       errors.amount = 'Amount is required and must be greater than 0';
-    } else if (data.amount < 500) {
-      errors.amount = 'Minimum payout amount is RS: 500';
+    } else if (data.amount < 100) {
+      errors.amount = 'Minimum payout amount is RS: 100';
     } else if (data.amount > 1000000) {
       errors.amount = 'Maximum payout amount is RS: 1,000,000';
     }
@@ -36,15 +36,6 @@ export const usePayout = (options: UsePayoutOptions = {}) => {
     // Bank account validation
     if (!data.bankAccountId) {
       errors.bankAccountId = 'Please select a bank account';
-    }
-
-    // Transaction PIN validation
-    if (!data.transactionPin) {
-      errors.transactionPin = 'Transaction PIN is required';
-    } else if (data.transactionPin.length !== 4) {
-      errors.transactionPin = 'Transaction PIN must be 4 digits';
-    } else if (!/^\d{4}$/.test(data.transactionPin)) {
-      errors.transactionPin = 'Transaction PIN must contain only numbers';
     }
 
     return errors;

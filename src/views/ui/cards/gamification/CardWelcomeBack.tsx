@@ -1,7 +1,6 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
@@ -39,7 +38,6 @@ interface CardWelcomeBackProps {
   totalEarnings?: number
   pendingAmount?: number
   isWalletEnabled?: boolean
-  onWithdraw?: () => void
 }
 
 const CardWelcomeBack = ({
@@ -47,7 +45,6 @@ const CardWelcomeBack = ({
   walletBalance = 28450,
   totalEarnings = 125000,
   pendingAmount = 3500,
-  onWithdraw,
 }: CardWelcomeBackProps) => {
 
 
@@ -72,19 +69,7 @@ const CardWelcomeBack = ({
                 </Box>
                 ! 📊
               </Typography>
-              <Button
-                variant='outlined'
-                size='small'
-                startIcon={<Icon icon='mdi:arrow-up' />}
-                onClick={onWithdraw}
-                sx={{
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': { borderColor: 'primary.dark', bgcolor: 'transparent' }
-                }}
-              >
-                Withdraw
-              </Button>
+
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
