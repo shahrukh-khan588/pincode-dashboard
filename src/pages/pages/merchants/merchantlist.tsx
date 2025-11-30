@@ -2,6 +2,7 @@
 import { useState, useEffect, MouseEvent, useCallback } from 'react'
 
 // ** Next Imports
+import Link from 'next/link'
 
 
 // ** MUI Imports
@@ -179,8 +180,24 @@ const columns = [
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {renderClient(row)}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
-            {/* <LinkStyled href={`/pages/merchants/merchant-detail?merchantId=${row.merchantId}`}>{fullName}</LinkStyled> */}
-            <Typography noWrap variant='body2'>{fullName}</Typography>
+            <Link href={`/pages/merchants/${row.id}`} passHref legacyBehavior>
+              <Typography
+                noWrap
+                variant='body2'
+                component='a'
+                sx={{
+                  fontWeight: 600,
+                  color: 'primary.main',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                {fullName}
+              </Typography>
+            </Link>
             <Typography noWrap variant='caption'>{row.merchantId}</Typography>
           </Box>
         </Box>

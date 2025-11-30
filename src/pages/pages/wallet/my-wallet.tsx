@@ -479,6 +479,7 @@ const Wallet = () => {
                           <TableRow>
                             <TableCell>Date</TableCell>
                             <TableCell>Transaction Ref</TableCell>
+                            <TableCell>Type</TableCell>
                             <TableCell>Provider</TableCell>
                             <TableCell align='right'>Amount (PKR)</TableCell>
                             <TableCell>Status</TableCell>
@@ -492,6 +493,25 @@ const Wallet = () => {
                               <TableCell>{transaction.transactionRef || transaction.id}</TableCell>
                               <TableCell>
                                 <Stack direction='row' spacing={1} alignItems='center'>
+                                  <Avatar
+                                    sx={{
+                                      width: 30,
+                                      height: 30,
+                                      bgcolor: (theme) => transaction.type === 'CREDIT' ? theme.palette.success.main : theme.palette.error.main,
+                                      color: 'common.white'
+                                    }}
+                                  >
+                                    <Icon
+                                      icon={transaction.type === 'CREDIT' ? 'mdi:arrow-down' : 'mdi:arrow-up'}
+                                      width={20}
+                                      height={20}
+                                    />
+                                  </Avatar>
+                                  <Typography variant='body2'>{transaction.type || 'DEBIT'}</Typography>
+                                </Stack>
+                              </TableCell>
+                              <TableCell>
+                                <Stack direction='row' spacing={1} alignItems='center'>
                                   <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.light' }}>
                                     <Icon icon='mdi:bank' width={16} height={16} />
                                   </Avatar>
@@ -499,7 +519,12 @@ const Wallet = () => {
                                 </Stack>
                               </TableCell>
                               <TableCell align='right'>
-                                <Typography fontWeight={600}>RS: {Number(transaction?.amount || 0).toLocaleString()}</Typography>
+                                <Typography
+                                  fontWeight={600}
+                                  color={transaction.type === 'CREDIT' ? 'success.main' : 'error.main'}
+                                >
+                                  {transaction.type === 'CREDIT' ? '+' : '-'} RS: {Number(transaction?.amount || 0).toLocaleString()}
+                                </Typography>
                               </TableCell>
                               <TableCell>
                                 <Chip
@@ -509,14 +534,16 @@ const Wallet = () => {
                                 />
                               </TableCell>
                               <TableCell>
-                                <Button
-                                  disabled={isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef}
-                                  variant='contained' color='primary' size='small' onClick={() => handleCheckStatus(transaction.transactionRef || transaction.id, transaction.provider || 'JAZZCASH')}>
-                                  Check Status
-                                  {isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef && (
-                                    <CircularProgress size={20} sx={{ ml: 1 }} />
-                                  )}
-                                </Button>
+                                {transaction.status === 'PENDING' && (
+                                  <Button
+                                    disabled={isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef}
+                                    variant='contained' color='primary' size='small' onClick={() => handleCheckStatus(transaction.transactionRef || transaction.id, transaction.provider || 'JAZZCASH')}>
+                                    Check Status
+                                    {isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef && (
+                                      <CircularProgress size={20} sx={{ ml: 1 }} />
+                                    )}
+                                  </Button>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -572,8 +599,6 @@ const Wallet = () => {
                     </Button>
                   </Box>
                 )}
-
-                {/* Removed old pagination controls in favor of TablePagination */}
               </CardContent>
             </Card>
           )}

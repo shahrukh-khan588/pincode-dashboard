@@ -67,7 +67,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const [amount, setAmount] = useState(500);
+  const [amount, setAmount] = useState(50000);
   const [selectedBank, setSelectedBank] = useState('');
   const [description, setDescription] = useState('');
 
@@ -130,7 +130,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
     }
   };
 
-  const isValidAmount = Number(amount) >= 100 && Number(amount) <= 100000;
+  const isValidAmount = Number(amount) >= 50000 && Number(amount) <= 1000000;
   const hasSufficientBalance = Number(amount) <= (merchant?.walletBalance?.availableBalance || 0);
 
   return (
@@ -204,17 +204,15 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
               <Slider
                 value={amount}
                 onChange={(_, value) => setAmount(value as number)}
-                min={100}
-                max={100000}
-                step={100}
+                min={50000}
+                max={1000000}
+                step={5000}
                 marks={[
-                  { value: 100, label: '100' },
-                  { value: 1000, label: '1K' },
-                  { value: 10000, label: '10K' },
-                  { value: 25000, label: '25K' },
                   { value: 50000, label: '50K' },
-                  { value: 75000, label: '75K' },
-                  { value: 100000, label: '100K' }
+                  { value: 250000, label: '250K' },
+                  { value: 500000, label: '500K' },
+                  { value: 750000, label: '750K' },
+                  { value: 1000000, label: '1M' }
                 ]}
                 sx={{
                   '& .MuiSlider-thumb': {
@@ -231,10 +229,10 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
               />
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
                 <Typography variant="caption" color="text.secondary">
-                  Min: RS 100
+                  Min: RS 50,000
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Max: RS 100,000
+                  Max: RS 1,000,000
                 </Typography>
               </Stack>
               {validationErrors.amount && (
@@ -291,7 +289,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
 
             {!isValidAmount && amount > 0 && (
               <Alert severity="warning" icon={<Icon icon='mdi:information' />}>
-                Amount must be between RS 100 and RS 100,000
+                Amount must be between RS 50,000 and RS 1,000,000
               </Alert>
             )}
 

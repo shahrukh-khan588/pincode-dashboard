@@ -1,6 +1,6 @@
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import { transformErrorResponse } from '@/utils/errorHandler';
-import { AdminMerchantsResponse, PaymentsListResponse, AdminPayoutRequestsResponse } from '../types';
+import { AdminMerchantsResponse, PaymentsListResponse, AdminPayoutRequestsResponse, MerchantDetailResponse } from '../types';
 import { api } from '..';
 
 export const adminApi = api.injectEndpoints({
@@ -22,6 +22,18 @@ export const adminApi = api.injectEndpoints({
         transformErrorResponse(
           error,
           (error.data as { error?: string })?.error || "Failed to fetch merchants"
+        ),
+    }),
+
+    getMerchantById: builder.query<MerchantDetailResponse, string>({
+      query: (merchantId) => ({
+        url: `/admin/merchants/${merchantId}`,
+      }),
+      providesTags: (result, error, merchantId) => [{ type: 'Merchants', id: merchantId }],
+      transformErrorResponse: (error: FetchBaseQueryError) =>
+        transformErrorResponse(
+          error,
+          (error.data as { error?: string })?.error || "Failed to fetch merchant details"
         ),
     }),
 
@@ -117,6 +129,7 @@ export const adminApi = api.injectEndpoints({
 
 export const {
   useGetMerchantsQuery,
+  useGetMerchantByIdQuery,
   useHandelChangeUserStatusMutation,
   useGetAdminPaymentsQuery,
   useGetAdminPayoutRequestsQuery,

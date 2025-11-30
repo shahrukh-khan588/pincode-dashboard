@@ -198,13 +198,15 @@ const RowOptions = ({ row }: { row: TransactionItem }) => {
         }}
         PaperProps={{ style: { minWidth: '8rem' } }}
       >
-        <MenuItem
-          onClick={handleCheckStatus}
-          sx={{ '& svg': { mr: 2 } }}
-        >
-          <Icon icon='mdi:refresh' fontSize={20} />
-          Check Status
-        </MenuItem>
+        {row.status === 'not_checked' && (
+          <MenuItem
+            onClick={handleCheckStatus}
+            sx={{ '& svg': { mr: 2 } }}
+          >
+            <Icon icon='mdi:refresh' fontSize={20} />
+            Check Status
+          </MenuItem>
+        )}
         <MenuItem
           onClick={handleViewDetails}
           sx={{ '& svg': { mr: 2 } }}

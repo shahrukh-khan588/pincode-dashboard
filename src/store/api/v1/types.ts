@@ -82,6 +82,24 @@ export interface AdminMerchantsResponse {
   nextPage?: number;
 }
 
+// Merchant detail response
+export interface MerchantDetailResponse {
+  merchantId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  businessName: string;
+  businessAddress: string;
+  taxId: string;
+  phoneNumber: string;
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+  isActive: boolean;
+  walletBalance: MerchantWalletBalance;
+  bankAccountDetails: MerchantBankAccountDetails;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;
