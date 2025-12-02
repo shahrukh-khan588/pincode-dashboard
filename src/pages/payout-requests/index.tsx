@@ -14,13 +14,22 @@ import Divider from '@mui/material/Divider'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 
-// import Button from '@mui/material/Button'
+import Button from '@mui/material/Button'
 import Avatar from '@mui/material/Avatar'
 import Chip from '@mui/material/Chip'
 import Alert from '@mui/material/Alert'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Paper from '@mui/material/Paper'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
 
 // ** Data Grid
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
@@ -86,6 +95,11 @@ const getStatusIcon = (status: string) => {
 
 const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed' | 'failed'>('all')
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [noteContent, setNoteContent] = useState<string>('')
+  const [noteDialogTitle, setNoteDialogTitle] = useState<string>('Payout Request Note')
+  const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [actionMenuRow, setActionMenuRow] = useState<MerchantPayoutRequestItem | null>(null)
 
   // Fetch payout requests (new endpoint)
   const { data: payoutResponse, isLoading, error } = useGetMerchantPayoutRequestsQuery({
@@ -190,6 +204,29 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
             size="small"
             icon={<Icon icon={getStatusIcon(params.value)} />}
           />
+        )
+      }
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 0.6,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const note = params.row?.note || params.row?.metadata?.note || params.row?.metadata?.message
+        const hasActions = Boolean(note)
+        if (!hasActions) {
+          return <></>
+        }
+
+        return (
+          <IconButton
+            size='small'
+            onClick={(e) => { e.stopPropagation(); setActionMenuAnchorEl(e.currentTarget); setActionMenuRow(params.row as MerchantPayoutRequestItem) }}
+          >
+            <Icon icon='mdi:dots-vertical' />
+          </IconButton>
         )
       }
     }
@@ -349,6 +386,41 @@ const PayoutRequestsPage: NextPage & { authGuard?: boolean } = () => {
           </CardContent>
         </Card>
       </Grid>
+
+      {/* Actions Overflow Menu */}
+      <Menu
+        anchorEl={actionMenuAnchorEl}
+        open={Boolean(actionMenuAnchorEl)}
+        onClose={() => { setActionMenuAnchorEl(null); setActionMenuRow(null) }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {actionMenuRow && (actionMenuRow.note || (actionMenuRow as any)?.metadata?.note || (actionMenuRow as any)?.metadata?.message) ? (
+          <MenuItem onClick={() => { const note = actionMenuRow.note || (actionMenuRow as any)?.metadata?.note || (actionMenuRow as any)?.metadata?.message; setNoteContent(String(note)); setNoteDialogTitle(`Note for ${actionMenuRow.id}`); setNoteDialogOpen(true); setActionMenuAnchorEl(null); setActionMenuRow(null) }}>
+            <ListItemIcon>
+              <Icon icon='mdi:note-text-outline' />
+            </ListItemIcon>
+            <ListItemText primary="Show Note" />
+          </MenuItem>
+        ) : null}
+      </Menu>
+
+      {/* Note Dialog */}
+      <Dialog open={noteDialogOpen} onClose={() => setNoteDialogOpen(false)} fullWidth maxWidth='sm'>
+        <DialogTitle>{noteDialogTitle}</DialogTitle>
+        <DialogContent dividers>
+          {noteContent ? (
+            <Typography variant='body1' sx={{ whiteSpace: 'pre-wrap' }}>
+              {noteContent}
+            </Typography>
+          ) : (
+            <Typography variant='body2' color='text.secondary'>No note available for this payout request.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoteDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   )
 }

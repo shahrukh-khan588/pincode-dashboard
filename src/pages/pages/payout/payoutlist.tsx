@@ -60,6 +60,7 @@ interface PayoutRequest {
   requestDate: string
   processedDate?: string
   reason?: string
+  note?: string
 }
 
 const PayoutList = () => {
@@ -80,6 +81,9 @@ const PayoutList = () => {
     message: '',
     severity: 'success'
   })
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [noteContent, setNoteContent] = useState<string>('')
+  const [noteDialogTitle, setNoteDialogTitle] = useState<string>('Payout Request Note')
 
   // ** Map API response to component data structure
   const mapApiToComponent = React.useCallback((item: AdminPayoutRequestItem): PayoutRequest => {
@@ -105,7 +109,8 @@ const PayoutList = () => {
       accountTitle: item.merchantName.toUpperCase(),
       ifscCode: 'N/A', // Not available in API response
       status: mappedStatus,
-      requestDate: item.createdAt.split('T')[0]
+      requestDate: item.createdAt.split('T')[0],
+      note: (item as any)?.note || (item as any)?.metadata?.note || (item as any)?.metadata?.message
     }
   }, [])
 
@@ -432,14 +437,14 @@ const PayoutList = () => {
         const request = params.row
 
         return (
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             {request.status === 'pending' && (
               <>
                 <Tooltip title="Accept Request">
                   <IconButton
                     size='small'
                     color='success'
-                    onClick={() => handleActionClick(request, 'accept')}
+                    onClick={(e) => { e.stopPropagation(); handleActionClick(request, 'accept') }}
                   >
                     <Icon icon='mdi:check' />
                   </IconButton>
@@ -448,7 +453,7 @@ const PayoutList = () => {
                   <IconButton
                     size='small'
                     color='error'
-                    onClick={() => handleActionClick(request, 'reject')}
+                    onClick={(e) => { e.stopPropagation(); handleActionClick(request, 'reject') }}
                   >
                     <Icon icon='mdi:close' />
                   </IconButton>
@@ -462,9 +467,23 @@ const PayoutList = () => {
                   variant='contained'
                   size='small'
                   startIcon={<Icon icon='mdi:check-circle' />}
-                  onClick={() => handleActionClick(request, 'complete')}
+                  onClick={(e) => { e.stopPropagation(); handleActionClick(request, 'complete') }}
                 >
                   Complete
+                </Button>
+              </Tooltip>
+            )}
+
+            {request?.note && (
+              <Tooltip title="View Note">
+                <Button
+                  variant='outlined'
+                  color='secondary'
+                  size='small'
+                  startIcon={<Icon icon='mdi:note-text-outline' />}
+                  onClick={(e) => { e.stopPropagation(); setNoteContent(String(request.note)); setNoteDialogTitle(`Note for ${request.userName}`); setNoteDialogOpen(true); }}
+                >
+                  View Note
                 </Button>
               </Tooltip>
             )}
@@ -660,6 +679,23 @@ const PayoutList = () => {
           >
             {isApproving || isRejecting ? 'Processing...' : 'Confirm'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Note Dialog */}
+      <Dialog open={noteDialogOpen} onClose={() => setNoteDialogOpen(false)} fullWidth maxWidth='sm'>
+        <DialogTitle>{noteDialogTitle}</DialogTitle>
+        <DialogContent dividers>
+          {noteContent ? (
+            <Typography variant='body1' sx={{ whiteSpace: 'pre-wrap' }}>
+              {noteContent}
+            </Typography>
+          ) : (
+            <Typography variant='body2' color='text.secondary'>No note available for this payout request.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoteDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 

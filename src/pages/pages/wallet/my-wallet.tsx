@@ -10,7 +10,6 @@ import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
@@ -23,6 +22,10 @@ import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Alert from '@mui/material/Alert'
@@ -52,7 +55,6 @@ import type { MerchantDataType } from 'src/context/types'
 // ** Components
 import CardWelcomeBack from 'src/views/ui/cards/gamification/CardWelcomeBack'
 import PayoutRequestForm from '@/pages/components/PayoutRequestForm'
-import CircularProgress from '@mui/material/CircularProgress'
 
 // ** Styled Components (none for table version)
 
@@ -61,6 +63,11 @@ import CircularProgress from '@mui/material/CircularProgress'
 const Wallet = () => {
   // ** States
   const [selectedTab, setSelectedTab] = useState('transactions')
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [noteContent, setNoteContent] = useState<string>('')
+  const [noteDialogTitle, setNoteDialogTitle] = useState<string>('Transaction Note')
+  const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [actionMenuTx, setActionMenuTx] = useState<any>(null)
   const [showAddMoney, setShowAddMoney] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
   const [amount, setAmount] = useState('')
@@ -305,6 +312,14 @@ const Wallet = () => {
     }
   }
 
+  const handleViewNote = (transaction: any) => {
+    const note = transaction?.note || transaction?.metadata?.note || transaction?.metadata?.message
+    if (!note) return
+    setNoteContent(String(note))
+    setNoteDialogTitle(`Note for ${transaction.transactionRef || transaction.id}`)
+    setNoteDialogOpen(true)
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Welcome Back Card */}
@@ -488,7 +503,10 @@ const Wallet = () => {
                         </TableHead>
                         <TableBody>
                           {payouts.items.map((transaction: any, index: number) => (
-                            <TableRow key={index} hover>
+                            <TableRow
+                              key={index}
+                              hover
+                            >
                               <TableCell>{new Date(transaction.createdAt).toLocaleString()}</TableCell>
                               <TableCell>{transaction.transactionRef || transaction.id}</TableCell>
                               <TableCell>
@@ -534,16 +552,14 @@ const Wallet = () => {
                                 />
                               </TableCell>
                               <TableCell>
-                                {transaction.status === 'PENDING' && (
-                                  <Button
-                                    disabled={isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef}
-                                    variant='contained' color='primary' size='small' onClick={() => handleCheckStatus(transaction.transactionRef || transaction.id, transaction.provider || 'JAZZCASH')}>
-                                    Check Status
-                                    {isTransactionStatusLoading && checkingTransactionRef === transaction.transactionRef && (
-                                      <CircularProgress size={20} sx={{ ml: 1 }} />
-                                    )}
-                                  </Button>
-                                )}
+                                {((transaction?.note || transaction?.metadata?.note || transaction?.metadata?.message) || transaction.status === 'PENDING') ? (
+                                  <IconButton
+                                    size='small'
+                                    onClick={(e) => { e.stopPropagation(); setActionMenuAnchorEl(e.currentTarget); setActionMenuTx(transaction) }}
+                                  >
+                                    <Icon icon='mdi:dots-vertical' />
+                                  </IconButton>
+                                ) : null}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -1038,6 +1054,62 @@ const Wallet = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Actions Overflow Menu for Recent Transactions */}
+      <Menu
+        anchorEl={actionMenuAnchorEl}
+        open={Boolean(actionMenuAnchorEl)}
+        onClose={() => { setActionMenuAnchorEl(null); setActionMenuTx(null) }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {(() => {
+          const tx = actionMenuTx
+          if (!tx) {
+            return null
+          }
+
+          const note = tx?.note || tx?.metadata?.note || tx?.metadata?.message
+
+          return (
+            <>
+              {note ? (
+                <MenuItem onClick={() => { handleViewNote(tx); setActionMenuAnchorEl(null); setActionMenuTx(null) }}>
+                  <ListItemIcon>
+                    <Icon icon='mdi:note-text-outline' />
+                  </ListItemIcon>
+                  <ListItemText primary="Show Note" />
+                </MenuItem>
+              ) : null}
+              {tx?.status === 'PENDING' ? (
+                <MenuItem onClick={() => { handleCheckStatus(tx.transactionRef || tx.id, tx.provider || 'JAZZCASH'); setActionMenuAnchorEl(null); setActionMenuTx(null) }}>
+                  <ListItemIcon>
+                    <Icon icon='mdi:progress-clock' />
+                  </ListItemIcon>
+                  <ListItemText primary="Check Status" />
+                </MenuItem>
+              ) : null}
+            </>
+          )
+        })()}
+      </Menu>
+
+      {/* Note Dialog */}
+      <Dialog open={noteDialogOpen} onClose={() => setNoteDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{noteDialogTitle}</DialogTitle>
+        <DialogContent dividers>
+          {noteContent ? (
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+              {noteContent}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary">No note available for this transaction.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoteDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

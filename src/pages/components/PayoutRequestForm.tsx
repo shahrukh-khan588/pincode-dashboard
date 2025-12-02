@@ -122,7 +122,7 @@ const PayoutRequestForm: React.FC<PayoutRequestFormProps> = ({
     const result = await requestPayout({
       amount: amount,
       bankAccountId: selectedBank,
-      description: description || undefined,
+      note: description || undefined,
     });
 
     if (!result.success) {

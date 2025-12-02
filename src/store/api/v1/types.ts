@@ -123,7 +123,7 @@ export interface PayoutRequest {
   amount: number;
   bankAccountId: string;
   transactionPin?: string;
-  description?: string;
+  note?: string;
 }
 
 export interface WalletTransferRequest {
@@ -146,6 +146,7 @@ export interface PaymentResponse {
   status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED';
   createdAt: string;
   metadata: Record<string, any>;
+  note?: string; // optional note returned by backend
 }
 
 export interface PaymentsListResponse {
@@ -170,6 +171,8 @@ export interface MerchantPayoutRequestItem {
   status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED' | string;
   createdAt: string;
   destination: MerchantPayoutDestination;
+  note?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface MerchantPayoutRequestsListResponse {
@@ -197,6 +200,8 @@ export interface AdminPayoutRequestItem {
   merchantEmail: string;
   availableAmount: number;
   destination: AdminPayoutDestination;
+  note?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface AdminPayoutRequestsResponse {
