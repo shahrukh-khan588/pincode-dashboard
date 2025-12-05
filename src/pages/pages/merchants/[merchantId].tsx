@@ -121,13 +121,13 @@ const MerchantDetail = () => {
         {
             flex: 0.15,
             minWidth: 120,
-            field: 'provider',
-            headerName: 'Provider',
+            field: 'fee',
+            headerName: 'Fee',
             renderCell: ({ row }: CellType) => (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='mdi:credit-card-outline' fontSize={20} style={{ marginRight: 8, opacity: 0.7 }} />
-                    <Typography variant='body2' sx={{ textTransform: 'capitalize' }}>
-                        {row.provider}
+                    <Icon icon='mdi:cash' fontSize={20} style={{ marginRight: 8, opacity: 0.7 }} />
+                    <Typography variant='body2'>
+                        {typeof row.fee === 'number' ? `${row.currency} ${row.fee.toLocaleString()}` : '—'}
                     </Typography>
                 </Box>
             )

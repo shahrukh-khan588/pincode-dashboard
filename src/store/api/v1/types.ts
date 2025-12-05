@@ -140,7 +140,10 @@ export interface PaymentResponse {
   id: string;
   amount: number;
   currency: string;
-  provider: string;
+  // Note: GET /merchants/payments now returns `fee` instead of `provider`.
+  // To maintain backward compatibility (e.g., admin endpoints), both are optional.
+  provider?: string;
+  fee?: number;
   merchantId: string;
   transactionRef: string;
   status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'PROCESSING' | 'CANCELLED';

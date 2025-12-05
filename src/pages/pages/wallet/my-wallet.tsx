@@ -495,7 +495,7 @@ const Wallet = () => {
                             <TableCell>Date</TableCell>
                             <TableCell>Transaction Ref</TableCell>
                             <TableCell>Type</TableCell>
-                            <TableCell>Provider</TableCell>
+                            <TableCell>Fee</TableCell>
                             <TableCell align='right'>Amount (PKR)</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell>Actions</TableCell>
@@ -529,12 +529,9 @@ const Wallet = () => {
                                 </Stack>
                               </TableCell>
                               <TableCell>
-                                <Stack direction='row' spacing={1} alignItems='center'>
-                                  <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.light' }}>
-                                    <Icon icon='mdi:bank' width={16} height={16} />
-                                  </Avatar>
-                                  <Typography variant='body2'>{transaction.provider || 'Payment'}</Typography>
-                                </Stack>
+                                <Typography variant='body2'>
+                                  {typeof transaction.fee === 'string' ? `Rs: ${Number(transaction.fee).toLocaleString()}` : '—'}
+                                </Typography>
                               </TableCell>
                               <TableCell align='right'>
                                 <Typography
